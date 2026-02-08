@@ -66,6 +66,13 @@ docker run --rm hard-boiled-yolks:java_21
 * [`java21`](java/21) — `hard-boiled-yolks:java_21`
 * [`java25`](java/25) — `hard-boiled-yolks:java_25`
 
+### Python
+
+* [`python3.10`](python/3.10) — `hard-boiled-yolks:python_3.10`
+* [`python3.11`](python/3.11) — `hard-boiled-yolks:python_3.11`
+* [`python3.12`](python/3.12) — `hard-boiled-yolks:python_3.12`
+* [`python3.13`](python/3.13) — `hard-boiled-yolks:python_3.13`
+
 ## Contributing
 
 Each image is defined by an `apko.yaml` in its version folder (e.g. `java/21/apko.yaml`). To add a new version, create a new folder with its apko config and update the corresponding GitHub Actions workflow.

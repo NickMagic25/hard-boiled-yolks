@@ -1,5 +1,6 @@
 #
 # Copyright (c) 2021 Matthew Penner
+# Copyright (c) 2026 Nick Majkic
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +33,23 @@ contents:
       - openssl
       - curl
       - java-hard-boiled-yolks-entrypoint@local
+
+accounts:
+  groups:
+    - groupname: container
+      gid: 1000
+  users:
+    - username: container
+      uid: 1000
+      gid: 1000
+      shell: /bin/sh
+
+paths:
+  - path: /home/container
+    type: directory
+    uid: 1000
+    gid: 1000
+    permissions: 0o750
 
 entrypoint:
   command: /usr/bin/entrypoint.sh

@@ -1,5 +1,6 @@
 #
 # Copyright (c) 2021 Matthew Penner
+# Copyright (c) 2026 Nick Majkic
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,19 +21,39 @@
 # SOFTWARE.
 #
 
-FROM        --platform=$TARGETOS/$TARGETARCH python:3.9-alpine
+contents:
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+    repositories:
+      - https://packages.wolfi.dev/os
+    packages:
+      - wolfi-base
+      - python-3.11
+      - tzdata
+      - openssl
+      - curl
+      - python-hard-boiled-yolks-entrypoint@local
 
-LABEL       author="Matthew Penner" maintainer="matthew@pterodactyl.io"
+accounts:
+  groups:
+    - groupname: container
+      gid: 1000
+  users:
+    - username: container
+      uid: 1000
+      gid: 1000
+      shell: /bin/sh
 
-LABEL       org.opencontainers.image.source="https://github.com/pterodactyl/yolks"
-LABEL       org.opencontainers.image.licenses=MIT
+paths:
+  - path: /home/container
+    type: directory
+    uid: 1000
+    gid: 1000
+    permissions: 0o750
 
-RUN         apk add --update --no-cache cmake make ca-certificates curl ffmpeg g++ gcc git openssl sqlite tar tzdata \
-				&& adduser -D -h /home/container container
+entrypoint:
+  command: /usr/bin/entrypoint.sh
 
-USER        container
-ENV         USER=container HOME=/home/container
-WORKDIR     /home/container
-
-COPY        ./../entrypoint.sh /entrypoint.sh
-CMD         [ "/bin/ash", "/entrypoint.sh" ]
+archs:
+  - x86_64
+  - aarch64
