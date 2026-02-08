@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2026 Pterodactyl
+# Copyright (c) 2021 Matthew Penner
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,21 +20,22 @@
 # SOFTWARE.
 #
 
-FROM        --platform=$TARGETOS/$TARGETARCH eclipse-temurin:25-jdk
+contents:
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+    repositories:
+      - https://packages.wolfi.dev/os
+    packages:
+      - wolfi-base
+      - openjdk-11-default-jdk
+      - tzdata
+      - openssl
+      - curl
+      - java-hard-boiled-yolks-entrypoint@local
 
-LABEL       author="William V." maintainer="william.venner@infraly.co"
+entrypoint:
+  command: /usr/bin/entrypoint.sh
 
-LABEL       org.opencontainers.image.source="https://github.com/pterodactyl/yolks"
-LABEL       org.opencontainers.image.licenses=MIT
-
-RUN 		apt-get update -y \
-				&& apt-get install -y lsof curl ca-certificates openssl git tar sqlite3 fontconfig libfreetype6 tzdata iproute2 libstdc++6 \
-				&& useradd -d /home/container -m container
-
-USER        container
-ENV         USER=container HOME=/home/container
-WORKDIR     /home/container
-
-COPY        ./../entrypoint.sh /entrypoint.sh
-
-CMD         [ "/bin/bash", "/entrypoint.sh" ]
+archs:
+  - x86_64
+  - aarch64
