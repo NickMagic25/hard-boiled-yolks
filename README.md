@@ -8,7 +8,6 @@ All images support `linux/amd64` and `linux/arm64` unless otherwise noted.
 
 ## Repository Structure
 
-* `oses/` — base OS images (Wolfi, Alpine, Debian)
 * `java/` — Java runtime images (OpenJDK 8, 11, 17, 18, 19, 21, 25)
 * `games/` — game-specific images
 * `installers/` — images used by egg install scripts
