@@ -1,3 +1,5 @@
+#!/bin/bash
+
 #
 # Copyright (c) 2021 Matthew Penner
 #
@@ -20,19 +22,30 @@
 # SOFTWARE.
 #
 
-FROM        --platform=$TARGETOS/$TARGETARCH python:3.10-alpine
+# Written by Nick Majkic
 
-LABEL       author="Matthew Penner" maintainer="matthew@pterodactyl.io"
+package:
+  name: python-hard-boiled-yolks-entrypoint
+  version: 0.1.0
+  epoch: 0
+  description: Entrypoint for hard boiled yolks Python images
+  target-architecture:
+    - x86_64
+    - aarch64
+  copyright:
+    - license: MIT
 
-LABEL       org.opencontainers.image.source="https://github.com/pterodactyl/yolks"
-LABEL       org.opencontainers.image.licenses=MIT
+environment:
+  contents:
+    repositories:
+      - https://packages.wolfi.dev/os
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+    packages:
+      - busybox
 
-RUN         apk add --update --no-cache cmake make ca-certificates curl ffmpeg g++ gcc git openssl sqlite tar tzdata \
-	&& adduser -D -h /home/container container
-
-USER        container
-ENV         USER=container HOME=/home/container
-WORKDIR     /home/container
-
-COPY        ./../entrypoint.sh /entrypoint.sh
-CMD         [ "/bin/ash", "/entrypoint.sh" ]
+pipeline:
+  - runs: |
+      mkdir -p "${{targets.destdir}}/usr/bin"
+      cp entrypoint.sh "${{targets.destdir}}/usr/bin/entrypoint.sh"
+      chmod +x "${{targets.destdir}}/usr/bin/entrypoint.sh"
