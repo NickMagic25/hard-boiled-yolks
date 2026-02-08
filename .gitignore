@@ -3,3 +3,6 @@
 
 melange.rsa
 melange.rsa.pub
+packages/
+sbom-*.json
+*.tar
