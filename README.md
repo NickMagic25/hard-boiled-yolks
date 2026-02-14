@@ -9,6 +9,7 @@ All images support `linux/amd64` and `linux/arm64` unless otherwise noted.
 ## Repository Structure
 
 * `java/` — Java runtime images (OpenJDK 8, 11, 17, 18, 19, 21, 25)
+* `steamcmd/` — SteamCMD image for game server hosting
 * `games/` — game-specific images
 * `installers/` — images used by egg install scripts
 * `nodejs/` — Node.js runtime images
@@ -72,6 +73,14 @@ docker run --rm hard-boiled-yolks:java_21
 * [`python3.11`](python/3.11) — `hard-boiled-yolks:python_3.11`
 * [`python3.12`](python/3.12) — `hard-boiled-yolks:python_3.12`
 * [`python3.13`](python/3.13) — `hard-boiled-yolks:python_3.13`
+
+### SteamCMD
+
+> `x86_64` only
+
+* [`steamcmd`](steamcmd) — `hard-boiled-yolks:steamcmd`
+
+SteamCMD image with Valve's Steam console client, rcon-cli, and 32-bit runtime libraries. Includes an entrypoint that handles auto-updating game servers on start via `SRCDS_APPID` and `STARTUP` environment variables. See [`steamcmd/README.md`](steamcmd/README.md) for build instructions and full environment variable reference.
 
 ## Contributing
 
