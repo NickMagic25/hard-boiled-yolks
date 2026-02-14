@@ -31,6 +31,7 @@ contents:
       - bash
       - ca-certificates-bundle
       - curl
+      - libstdc++
       - tzdata
       - steamcmd-hard-boiled-yolks-runtime@local
       - steamcmd-hard-boiled-yolks-entrypoint@local

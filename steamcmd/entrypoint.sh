@@ -29,10 +29,6 @@ sleep 1
 TZ=${TZ:-UTC}
 export TZ
 
-# Set environment variable that holds the Internal Docker IP
-INTERNAL_IP=$(ip route get 1 | awk '{print $(NF-2);exit}')
-export INTERNAL_IP
-
 # Set environment for Steam Proton
 if [ -f "/usr/local/bin/proton" ]; then
 	if [ -n "${SRCDS_APPID}" ]; then
@@ -64,7 +60,7 @@ fi
 if [ -z "${AUTO_UPDATE}" ] || [ "${AUTO_UPDATE}" == "1" ]; then
 	if [ -n "${SRCDS_APPID}" ]; then
 		# shellcheck disable=SC2046,SC2086
-		./steamcmd/steamcmd.sh +force_install_dir /home/container +login "${STEAM_USER}" "${STEAM_PASS}" "${STEAM_AUTH}" $([[ "${WINDOWS_INSTALL}" == "1" ]] && printf %s '+@sSteamCmdForcePlatformType windows') $([[ -z ${HLDS_GAME} ]] || printf %s "+app_set_config 90 mod ${HLDS_GAME}") "+app_update ${SRCDS_APPID} $([[ -z ${SRCDS_BETAID} ]] || printf %s "-beta ${SRCDS_BETAID}") $([[ -z ${SRCDS_BETAPASS} ]] || printf %s "-betapassword ${SRCDS_BETAPASS}") ${INSTALL_FLAGS}  $([[ "${VALIDATE}" == "1" ]] && printf %s 'validate')" $([[ "${UPDATE_STEAMWORKS}" == "1" ]] && printf %s '+app_update 1007') +quit
+		/usr/bin/steamcmd +force_install_dir /home/container +login "${STEAM_USER}" "${STEAM_PASS}" "${STEAM_AUTH}" $([[ "${WINDOWS_INSTALL}" == "1" ]] && printf %s '+@sSteamCmdForcePlatformType windows') $([[ -z ${HLDS_GAME} ]] || printf %s "+app_set_config 90 mod ${HLDS_GAME}") "+app_update ${SRCDS_APPID} $([[ -z ${SRCDS_BETAID} ]] || printf %s "-beta ${SRCDS_BETAID}") $([[ -z ${SRCDS_BETAPASS} ]] || printf %s "-betapassword ${SRCDS_BETAPASS}") ${INSTALL_FLAGS}  $([[ "${VALIDATE}" == "1" ]] && printf %s 'validate')" $([[ "${UPDATE_STEAMWORKS}" == "1" ]] && printf %s '+app_update 1007') +quit
 	fi
 fi
 

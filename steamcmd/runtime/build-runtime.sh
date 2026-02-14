@@ -104,3 +104,4 @@ fi
 if [ -d "${WORKDIR}/rootfs/usr/lib/i386-linux-gnu" ]; then
   cp -a "${WORKDIR}/rootfs/usr/lib/i386-linux-gnu/." "${DESTDIR}/usr/lib/i386-linux-gnu/"
 fi
+
