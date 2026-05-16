@@ -21,8 +21,38 @@
 # SOFTWARE.
 #
 
-FROM tiltedphoques/st-reborn-server:latest AS base
+ARG ST_TAG=v1.8.0
+
+FROM debian:12 AS builder
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV XMAKE_ROOT=y
+SHELL ["/bin/bash", "-c"]
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential curl pkg-config git ca-certificates unzip libssl-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN curl -fsSL https://xmake.io/shget.text | bash
+
+ARG ST_TAG
+RUN git clone --depth 1 --branch ${ST_TAG} https://github.com/tiltedphoques/TiltedEvolution.git /src
+
+WORKDIR /src
+
+RUN --mount=type=cache,target=/root/.xmake/packages \
+    --mount=type=cache,target=/root/.xmake/repositories \
+    source ~/.xmake/profile && \
+    xmake config -y -m release && \
+    xmake -y && \
+    xmake install -y -o package
 
 FROM cgr.dev/chainguard/wolfi-base:latest AS final
 
-COPY --from=base /st-server/ /st-server
+WORKDIR /st-server
+
+COPY --from=builder \
+    /src/package/lib/libSTServer.so \
+    /src/package/bin/SkyrimTogetherServer \
+    /st-server/
+
