@@ -1,0 +1,81 @@
+package:
+  name: skyrim-together-server
+  version: 1.8.0
+  epoch: 0
+  description: Skyrim Together Reborn dedicated server
+  target-architecture:
+    - x86_64
+  copyright:
+    - license: GPL-3.0-or-later
+
+environment:
+  contents:
+    repositories:
+      - https://packages.wolfi.dev/os
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+    packages:
+      - bash
+      - busybox
+      - build-base
+      - ca-certificates-bundle
+      - clang
+      - cmake
+      - curl
+      - git
+      - openssl-dev
+      - perl
+      - pkgconf
+      - unzip
+      - 7zip
+
+pipeline:
+  - uses: git-checkout
+    with:
+      repository: https://github.com/tiltedphoques/TiltedEvolution.git
+      tag: v1.8.0
+      recurse-submodules: true
+
+  # Wolfi may not have xmake packaged. This mirrors upstream's Dockerfile.
+  - runs: |
+      set -eux
+
+      export XMAKE_ROOT=y
+      curl -fsSL https://xmake.io/shget.text | bash
+
+      export PATH="$HOME/.local/bin:$PATH"
+      export XMAKE_PROGRAM_DIR="$HOME/.local/share/xmake"
+      export CC=clang
+      export CXX=clang++
+      export CFLAGS="${CFLAGS:-} -Wno-error"
+      export CXXFLAGS="${CXXFLAGS:-} -fpermissive -Wno-error"
+
+      # Patch dependency versions for newer compilers in Wolfi toolchains.
+      find . -name xmake.lua -type f -print0 | xargs -0 sed -i \
+        -e 's/sol2[[:space:]]*v3\.3\.0/sol2 v3.5.0/g' \
+        -e 's/abseil[[:space:]]*20250127\.1/abseil 20240116.2/g'
+
+      xmake --version
+      xmake config -y -m release --toolchain=clang
+      xmake -y
+      xmake install -y -o package
+
+  - runs: |
+      set -eux
+      install -Dm755 package/bin/SkyrimTogetherServer \
+        "${{targets.destdir}}/usr/bin/SkyrimTogetherServer"
+
+      install -Dm755 package/lib/libSTServer.so \
+        "${{targets.destdir}}/usr/lib/libSTServer.so"
+
+subpackages:
+  - name: skyrim-together-server-compat
+    description: Compatibility symlink layout for container usage
+    pipeline:
+      - runs: |
+          set -eux
+          mkdir -p "${{targets.subpkgdir}}/st-server"
+          ln -sf /usr/bin/SkyrimTogetherServer \
+            "${{targets.subpkgdir}}/st-server/SkyrimTogetherServer"
+          ln -sf /usr/lib/libSTServer.so \
+            "${{targets.subpkgdir}}/st-server/libSTServer.so"
