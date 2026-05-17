@@ -33,9 +33,7 @@ contents:
       - curl
       - libstdc++
       - tzdata
-      - iproute2
-      - net-tools
-      - skyrim-together-hard-boiled-yolks-entrypoint@local
+      - skyrim-together-server@local
 
 accounts:
   groups:
@@ -54,8 +52,10 @@ paths:
     gid: 1000
     permissions: 0o750
 
+work-dir: /home/container
+
 entrypoint:
-  command: /usr/bin/entrypoint.sh
+  command: /st-server/SkyrimTogetherServer
 
 archs:
   - x86_64

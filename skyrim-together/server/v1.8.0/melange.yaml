@@ -1,0 +1,96 @@
+package:
+  name: skyrim-together-server
+  version: 1.8.0
+  epoch: 0
+  description: Skyrim Together Reborn dedicated server
+  target-architecture:
+    - x86_64
+  copyright:
+    - license: GPL-3.0-or-later
+
+environment:
+  contents:
+    repositories:
+      - https://packages.wolfi.dev/os
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+    packages:
+      - bash
+      - busybox
+      - build-base
+      - ca-certificates-bundle
+      - clang
+      - cmake
+      - curl
+      - git
+      - openssl-dev
+      - perl
+      - pkgconf
+      - unzip
+      - 7zip
+      # ninja-build lets xmake find ninja in PATH instead of downloading it.
+      - ninja-build
+
+pipeline:
+  - uses: git-checkout
+    with:
+      repository: https://github.com/tiltedphoques/TiltedEvolution.git
+      tag: v1.8.0
+      recurse-submodules: true
+
+  # Wolfi may not have xmake packaged. This mirrors upstream's Dockerfile.
+  - runs: |
+      set -eux
+
+      export XMAKE_ROOT=y
+      curl -fsSL https://xmake.io/shget.text | bash
+
+      export PATH="$HOME/.local/bin:$PATH"
+      export XMAKE_PROGRAM_DIR="$HOME/.local/share/xmake"
+      export CC=clang
+      export CXX=clang++
+      export CFLAGS="${CFLAGS:-} -Wno-error"
+      export CXXFLAGS="${CXXFLAGS:-} -fpermissive -Wno-error -DFMT_USE_CONSTEVAL=0"
+
+      # Patch dependency versions and settings for Wolfi toolchains.
+      find . -name xmake.lua -type f -print0 | xargs -0 sed -i \
+        -e 's/sol2[[:space:]]*v3\.3\.0/sol2 v3.5.0/g' \
+        -e 's/spdlog[[:space:]]*v1\.13\.0/spdlog v1.15.3/g' \
+        -e 's/backend = "crashpad"/backend = "none"/g'
+
+      # Inject system OpenSSL so GNS links against libssl.so.3 instead of
+      # xmake downloading the EOL OpenSSL 1.1.1-w.
+      awk '
+        /add_requireconfs\("sentry-native"/ {
+          print
+          print "add_requireconfs(\"openssl\",   { system = true })"
+          print "add_requireconfs(\"*.openssl\", { system = true })"
+          next
+        }
+        1' xmake.lua > /tmp/xmake_patched.lua && mv /tmp/xmake_patched.lua xmake.lua
+
+      xmake config -y -m release --toolchain=clang \
+        --cxxflags="-Wno-narrowing"
+      xmake -y
+
+      # The server_runner after_install hook copies sentry-native's bin/
+      # (normally the crashpad_handler binary). With backend=none that
+      # directory is never created — stub it so the hook's os.cp succeeds.
+      find "$HOME/.xmake/packages/s/sentry-native" -name lib -type d | \
+        while read d; do mkdir -p "$(dirname "$d")/bin"; done
+
+      xmake install -y -o package
+
+  - runs: |
+      set -eux
+      install -Dm755 package/bin/SkyrimTogetherServer \
+        "${{targets.destdir}}/usr/bin/SkyrimTogetherServer"
+
+      install -Dm755 package/lib/libSTServer.so \
+        "${{targets.destdir}}/usr/lib/libSTServer.so"
+
+      mkdir -p "${{targets.destdir}}/st-server"
+      ln -sf /usr/bin/SkyrimTogetherServer \
+        "${{targets.destdir}}/st-server/SkyrimTogetherServer"
+      ln -sf /usr/lib/libSTServer.so \
+        "${{targets.destdir}}/st-server/libSTServer.so"
