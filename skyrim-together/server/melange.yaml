@@ -16,24 +16,19 @@ environment:
       - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
     packages:
       - bash
-      - binutils
       - busybox
       - build-base
       - ca-certificates-bundle
       - clang
+      - chromium
       - cmake
       - curl
       - git
-      - gcc
-      - make
       - openssl-dev
       - perl
       - pkgconf
       - unzip
       - 7zip
-      # Built locally from ../xmake/melange.yaml and supplied via
-      # --repository-append ./packages during melange build.
-      - xmake-hard-boiled-yolks
 
 pipeline:
   - uses: git-checkout
@@ -42,27 +37,32 @@ pipeline:
       tag: v1.8.0
       recurse-submodules: true
 
+  # Wolfi may not have xmake packaged. This mirrors upstream's Dockerfile.
   - runs: |
       set -eux
 
       export XMAKE_ROOT=y
+      curl -fsSL https://xmake.io/shget.text | bash
+
+      export PATH="$HOME/.local/bin:$PATH"
+      export XMAKE_PROGRAM_DIR="$HOME/.local/share/xmake"
       export CC=clang
       export CXX=clang++
       export CFLAGS="${CFLAGS:-} -Wno-error"
-      export CXXFLAGS="${CXXFLAGS:-} -fpermissive -Wno-error"
+      export CXXFLAGS="${CXXFLAGS:-} -fpermissive -Wno-error -DFMT_USE_CONSTEVAL=0"
 
       # Patch dependency versions for newer compilers in Wolfi toolchains.
-      # mimalloc v2.2.4 triggers a Lua concatenation bug in xmake's package
-      # script; v2.1.7 is the last version known to install cleanly here.
       find . -name xmake.lua -type f -print0 | xargs -0 sed -i \
         -e 's/sol2[[:space:]]*v3\.3\.0/sol2 v3.5.0/g' \
         -e 's/abseil[[:space:]]*20250127\.1/abseil 20240116.2/g' \
-        -e 's/mimalloc[[:space:]]*v2\.2\.4/mimalloc v2.1.7/g'
+        -e 's/spdlog[[:space:]]*v1\.13\.0/spdlog v1.15.3/g' \
+        -e 's/backend = "crashpad"/backend = "none"/g' \
+        -e 's/os\.cp(bindir, target:installdir())/os.trycp(bindir, target:installdir())/g'
 
-      xmake --version
-      xmake config -y -m release --toolchain=clang
-      xmake build -y SkyrimServerRunner
-      xmake install -y -o package SkyrimServerRunner
+      xmake config -y -m release --toolchain=clang \
+        --cxxflags="-Wno-narrowing"
+      xmake -y
+      xmake install -y -o package
 
   - runs: |
       set -eux
