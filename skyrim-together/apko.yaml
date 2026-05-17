@@ -52,7 +52,7 @@ paths:
     gid: 1000
     permissions: 0o750
 
-work-dir: /st-server
+work-dir: /home/container
 
 entrypoint:
   command: /st-server/SkyrimTogetherServer
