@@ -11,6 +11,7 @@ All images support `linux/amd64` and `linux/arm64` unless otherwise noted.
 * `java/` — Java runtime images (OpenJDK 8, 11, 17, 18, 19, 21, 25)
 * `steamcmd/` — SteamCMD image for game server hosting
 * `games/` — game-specific images
+* `control/` — shared web UI and process supervisor package
 * `installers/` — images used by egg install scripts
 * `nodejs/` — Node.js runtime images
 * `python/` — Python runtime images
@@ -23,10 +24,11 @@ All images support `linux/amd64` and `linux/arm64` unless otherwise noted.
 - [apko](https://github.com/chainguard-dev/apko) (or use the `cgr.dev/chainguard/apko` container image)
 - [melange](https://github.com/chainguard-dev/melange) (for packaging entrypoint scripts)
 
-### Build entrypoint package (melange)
+### Build local packages (melange)
 
 ```bash
 cd java
+melange build ../control/melange.yaml --source-dir .. --signing-key melange.rsa --out-dir ./packages
 melange build entrypoint/melange.yaml --source-dir . --signing-key melange.rsa
 ```
 
@@ -54,6 +56,19 @@ docker run --rm -v "${PWD}/java":/work -w /work cgr.dev/chainguard/apko build \
 docker load < java/java-21.tar
 docker run --rm hard-boiled-yolks:java_21
 ```
+
+## Web Control UI
+
+Images include `hby-control`, which exposes a web UI on `:8080` by default. It provides:
+
+- browsing, creating, editing, uploading, downloading, and deleting files under `/home/container`
+- a PTY-backed console connected to the supervised server process
+- start, stop, and restart controls for the main server command
+- optional HTTPS with `HBY_CONTROL_TLS_CERT_FILE` and `HBY_CONTROL_TLS_KEY_FILE`
+- optional password login with `HBY_CONTROL_USERNAME` and `HBY_CONTROL_PASSWORD`
+- optional OIDC login with `HBY_CONTROL_OIDC_ISSUER_URL`, `HBY_CONTROL_OIDC_CLIENT_ID`, and `HBY_CONTROL_OIDC_CLIENT_SECRET`
+
+Authentication is disabled unless password or OIDC environment variables are set. See [`control/README.md`](control/README.md) for the complete environment reference.
 
 ## Available Images
 
@@ -86,4 +101,4 @@ SteamCMD image with Valve's Steam console client, rcon-cli, and 32-bit runtime l
 
 Each image is defined by an `apko.yaml` in its version folder (e.g. `java/21/apko.yaml`). To add a new version, create a new folder with its apko config and update the corresponding GitHub Actions workflow.
 
-Custom entrypoint scripts should be packaged as APKs via melange. See [`java/entrypoint/README.md`](java/entrypoint/README.md) for details.
+Custom entrypoint scripts should be packaged as APKs via melange. Shared runtime functionality belongs in [`control/`](control). See [`java/entrypoint/README.md`](java/entrypoint/README.md) for details.

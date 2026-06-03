@@ -32,6 +32,7 @@ contents:
       - tzdata
       - openssl
       - curl
+      - hard-boiled-yolks-control@local
       - java-hard-boiled-yolks-entrypoint@local
 
 accounts:
@@ -50,6 +51,12 @@ paths:
     uid: 1000
     gid: 1000
     permissions: 0o750
+  - path: /usr/bin/hby-control
+    type: permissions
+    permissions: 0o755
+  - path: /usr/bin/entrypoint.sh
+    type: permissions
+    permissions: 0o755
 
 entrypoint:
   command: /usr/bin/entrypoint.sh

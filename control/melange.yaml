@@ -1,0 +1,29 @@
+package:
+  name: hard-boiled-yolks-control
+  version: 0.1.0
+  epoch: 0
+  description: Web control panel and process supervisor for hard-boiled-yolks images
+  target-architecture:
+    - x86_64
+    - aarch64
+  copyright:
+    - license: MIT
+
+environment:
+  contents:
+    repositories:
+      - https://packages.wolfi.dev/os
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+    packages:
+      - busybox
+      - ca-certificates-bundle
+      - go
+
+pipeline:
+  - runs: |
+      set -eux
+      cd control
+      CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" \
+        -o /tmp/hby-control ./cmd/hby-control
+      install -Dm755 /tmp/hby-control "${{targets.destdir}}/usr/bin/hby-control"

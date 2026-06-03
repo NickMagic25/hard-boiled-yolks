@@ -20,13 +20,14 @@ melange keygen
 
 This creates `melange.rsa` (private) and `melange.rsa.pub` (public) in the current directory.
 
-### 2. Build the entrypoint package
+### 2. Build local APK packages
 
 ```sh
+melange build ../control/melange.yaml --source-dir .. --signing-key melange.rsa --out-dir ./packages
 melange build entrypoint/melange.yaml --source-dir . --signing-key melange.rsa
 ```
 
-This produces APK packages under `packages/x86_64/` and `packages/aarch64/`.
+This produces the shared control package and Java entrypoint package under `packages/x86_64/` and `packages/aarch64/`.
 
 ### 3. Build a Java image
 

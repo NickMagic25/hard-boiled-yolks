@@ -1,0 +1,12 @@
+{
+  "name": "hby-control-webui-tests",
+  "private": true,
+  "scripts": {
+    "test:webui:install": "playwright install chromium",
+    "test:webui": "playwright test",
+    "test:webui:headed": "playwright test --headed"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.60.0"
+  }
+}

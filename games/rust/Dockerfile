@@ -20,6 +20,11 @@
 # SOFTWARE.
 #
 
+FROM        --platform=$BUILDPLATFORM golang:1.24-alpine AS hby-control-builder
+WORKDIR     /src/control
+COPY        control/ ./
+RUN         CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /usr/bin/hby-control ./cmd/hby-control
+
 FROM 		--platform=$TARGETOS/$TARGETARCH debian:bullseye-slim
 
 LABEL       author="Isaac A." maintainer="isaac@isaacs.site"
@@ -39,12 +44,14 @@ RUN			dpkg --add-architecture i386 \
 			&& npm install --prefix / ws \
 			&& useradd -d /home/container -m container
 
+COPY        --from=hby-control-builder /usr/bin/hby-control /usr/bin/hby-control
+
 USER 		container
 ENV  		USER=container HOME=/home/container
 
 WORKDIR 	/home/container
 
-COPY 		./entrypoint.sh /entrypoint.sh
-COPY 		./wrapper.js /wrapper.js
+COPY 		games/rust/entrypoint.sh /entrypoint.sh
+COPY 		games/rust/wrapper.js /wrapper.js
 
 CMD			[ "/bin/bash", "/entrypoint.sh" ]

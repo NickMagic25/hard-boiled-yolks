@@ -40,4 +40,7 @@ fi
 export LD_LIBRARY_PATH=$(pwd)/RustDedicated_Data/Plugins/x86_64:$(pwd)
 
 # Run the Server
+if command -v hby-control >/dev/null 2>&1; then
+    exec hby-control run -- node /wrapper.js "${MODIFIED_STARTUP}"
+fi
 node /wrapper.js "${MODIFIED_STARTUP}"

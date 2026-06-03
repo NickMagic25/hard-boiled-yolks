@@ -20,6 +20,11 @@
 # SOFTWARE.
 #
 
+FROM        --platform=$BUILDPLATFORM golang:1.24-alpine AS hby-control-builder
+WORKDIR     /src/control
+COPY        control/ ./
+RUN         CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /usr/bin/hby-control ./cmd/hby-control
+
 FROM        --platform=$TARGETOS/$TARGETARCH debian:stable-slim
 
 LABEL       author="Matthew Penner" maintainer="matthew@pterodactyl.io"
@@ -35,9 +40,11 @@ RUN         dpkg --add-architecture i386 \
 				&& apt install -y tar curl gcc g++ lib32gcc-s1 libgcc1 libcurl4-gnutls-dev:i386 libssl3:i386 libcurl4:i386 lib32tinfo6 libtinfo6:i386 lib32z1 lib32stdc++6 libncurses5:i386 libcurl3-gnutls:i386 libsdl2-2.0-0:i386 iproute2 gdb libsdl1.2debian libfontconfig1 telnet net-tools netcat-traditional tzdata \
 				&& useradd -m -d /home/container container
 
+COPY        --from=hby-control-builder /usr/bin/hby-control /usr/bin/hby-control
+
 USER        container
 ENV         USER=container HOME=/home/container
 WORKDIR     /home/container
 
-COPY        ./entrypoint.sh /entrypoint.sh
+COPY        games/source/entrypoint.sh /entrypoint.sh
 CMD         [ "/bin/bash", "/entrypoint.sh" ]

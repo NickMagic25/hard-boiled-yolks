@@ -57,4 +57,7 @@ if [[ -f config.json && -n "$HYTALE_MAX_VIEW_RADIUS" ]]; then
 	jq ".MaxViewRadius = $HYTALE_MAX_VIEW_RADIUS" config.json > config.tmp.json && mv config.tmp.json config.json
 fi
 
-/java.sh $@
+if command -v hby-control >/dev/null 2>&1; then
+	exec hby-control run -- /java.sh "$@"
+fi
+exec /java.sh "$@"

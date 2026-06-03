@@ -7,7 +7,9 @@ on:
     branches:
       - master
     paths:
-      - nodejs/*
+      - nodejs/**
+      - control/**
+      - .dockerignore
 jobs:
   push:
     name: "yolks:nodejs_${{ matrix.tag }}"
@@ -39,7 +41,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - uses: docker/build-push-action@v4
         with:
-          context: ./nodejs
+          context: .
           file: ./nodejs/${{ matrix.tag }}/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true

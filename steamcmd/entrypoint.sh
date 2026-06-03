@@ -69,4 +69,7 @@ MODIFIED_STARTUP=$(echo ${STARTUP} | sed -e 's/{{/${/g' -e 's/}}/}/g')
 echo -e ":/home/container$ ${MODIFIED_STARTUP}"
 
 # Run the Server
+if command -v hby-control >/dev/null 2>&1; then
+	exec hby-control run -- /bin/bash -lc "${MODIFIED_STARTUP}"
+fi
 eval ${MODIFIED_STARTUP}
