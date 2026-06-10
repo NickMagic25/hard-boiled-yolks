@@ -9,47 +9,6 @@ const state = {
 };
 
 const $ = (id) => document.getElementById(id);
-const osTheme = window.matchMedia
-  ? window.matchMedia("(prefers-color-scheme: dark)")
-  : { matches: false };
-
-function normalizeThemeMode(mode) {
-  return mode === "light" || mode === "dark" || mode === "system" ? mode : "system";
-}
-
-function storedThemeMode() {
-  try {
-    return normalizeThemeMode(
-      localStorage.getItem("hby-control-theme-mode") ||
-        localStorage.getItem("hby-control-theme") ||
-        "system",
-    );
-  } catch {
-    return "system";
-  }
-}
-
-function resolvedTheme(mode) {
-  return mode === "system" ? (osTheme.matches ? "dark" : "light") : mode;
-}
-
-function applyThemeMode(mode) {
-  mode = normalizeThemeMode(mode);
-  document.documentElement.dataset.themeMode = mode;
-  document.documentElement.dataset.theme = resolvedTheme(mode);
-  document.querySelectorAll('input[name="themeMode"]').forEach((input) => {
-    input.checked = input.value === mode;
-  });
-}
-
-function saveThemeMode(mode) {
-  mode = normalizeThemeMode(mode);
-  try {
-    localStorage.setItem("hby-control-theme-mode", mode);
-    localStorage.removeItem("hby-control-theme");
-  } catch {}
-  applyThemeMode(mode);
-}
 
 function toast(msg) {
   const t = $("toast");
@@ -475,21 +434,7 @@ function show(which) {
   if (consoleOn) scrollConsoleToBottom();
 }
 
-applyThemeMode(storedThemeMode());
-document.querySelectorAll('input[name="themeMode"]').forEach((input) => {
-  input.onchange = (e) => {
-    if (e.target.checked) saveThemeMode(e.target.value);
-  };
-});
-if (osTheme.addEventListener) {
-  osTheme.addEventListener("change", () => {
-    if (document.documentElement.dataset.themeMode === "system") applyThemeMode("system");
-  });
-} else if (osTheme.addListener) {
-  osTheme.addListener(() => {
-    if (document.documentElement.dataset.themeMode === "system") applyThemeMode("system");
-  });
-}
+window.hbyTheme.initControls();
 
 $("upBtn").onclick = () => loadFiles(parentPath(state.cwd));
 $("refreshBtn").onclick = () => loadFiles(state.cwd);

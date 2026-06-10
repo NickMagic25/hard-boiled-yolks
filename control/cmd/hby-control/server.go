@@ -34,7 +34,7 @@ func (a *app) routes() http.Handler {
 	mux.HandleFunc("/auth/oidc/login", a.handleOIDCLogin)
 	mux.HandleFunc("/auth/oidc/callback", a.handleOIDCCallback)
 
-	mux.Handle("/assets/", a.withAuth(http.HandlerFunc(a.handleAsset)))
+	mux.Handle("/assets/", http.HandlerFunc(a.handleAsset))
 	mux.Handle("/", a.withAuth(http.HandlerFunc(a.handleIndex)))
 	mux.Handle("/api/status", a.withAuth(http.HandlerFunc(a.handleStatus)))
 	mux.Handle("/api/fs/list", a.withAuth(http.HandlerFunc(a.handleFSList)))
@@ -117,9 +117,11 @@ func (a *app) handleIndex(w http.ResponseWriter, r *http.Request) {
 func (a *app) handleAsset(w http.ResponseWriter, r *http.Request) {
 	var body string
 	switch r.URL.Path {
-	case "/assets/index.js":
+	case "/assets/js/index.js":
 		body = indexJS
-	case "/assets/theme.js":
+	case "/assets/js/login.js":
+		body = loginJS
+	case "/assets/js/theme.js":
 		body = themeJS
 	default:
 		http.NotFound(w, r)

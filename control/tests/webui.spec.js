@@ -212,6 +212,20 @@ test("requires password login when credentials are configured", async ({ page, r
   });
 });
 
+test("loads external login assets for OIDC-only login", async ({ page, request }) => {
+  await usingControlServer({ oidc: true, autoStart: false }, async ({ baseURL }) => {
+    const assetResponse = await request.get(`${baseURL}/assets/js/login.js`);
+    expect(assetResponse.status()).toBe(200);
+    expect(assetResponse.headers()["content-type"]).toContain("text/javascript");
+
+    await page.goto(baseURL);
+    await expect(page).toHaveURL(/\/login$/);
+    await expect(page.locator("#passwordForm")).toBeHidden();
+    await expect(page.locator("#oidcRow")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Log In With OIDC" })).toBeVisible();
+  });
+});
+
 async function usingControlServer(optionsOrCallback, maybeCallback) {
   const options = typeof optionsOrCallback === "function" ? {} : optionsOrCallback;
   const callback = typeof optionsOrCallback === "function" ? optionsOrCallback : maybeCallback;
@@ -259,6 +273,11 @@ async function startControlServer(options = {}) {
   if (options.username && options.password) {
     env.HBY_CONTROL_USERNAME = options.username;
     env.HBY_CONTROL_PASSWORD = options.password;
+  }
+
+  if (options.oidc) {
+    env.HBY_CONTROL_OIDC_ISSUER_URL = "http://127.0.0.1:65535";
+    env.HBY_CONTROL_OIDC_CLIENT_ID = "playwright-client";
   }
 
   const child = childProcess.spawn(binaryPath, ["run", "--", "./server.sh"], {
