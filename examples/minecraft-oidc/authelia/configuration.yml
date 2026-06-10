@@ -1,0 +1,77 @@
+server:
+  address: tcp://:9091/
+  tls:
+    certificate: /config/runtime/tls/auth.localhost.crt
+    key: /config/runtime/tls/auth.localhost.key
+
+log:
+  level: info
+
+theme: auto
+
+identity_validation:
+  reset_password:
+    jwt_secret: {{ secret "/config/runtime/secrets/reset_jwt_secret" | msquote }}
+
+totp:
+  issuer: auth.localhost
+
+authentication_backend:
+  file:
+    path: /config/runtime/users_database.yml
+    watch: false
+
+access_control:
+  default_policy: one_factor
+
+session:
+  secret: {{ secret "/config/runtime/secrets/session_secret" | msquote }}
+  name: authelia_session
+  same_site: lax
+  expiration: 1h
+  inactivity: 5m
+  cookies:
+    - domain: __AUTHELIA_DOMAIN__
+      authelia_url: __AUTHELIA_URL__
+      default_redirection_url: __HBY_CONTROL_PUBLIC_URL__
+
+regulation:
+  max_retries: 5
+  find_time: 2m
+  ban_time: 5m
+
+storage:
+  encryption_key: {{ secret "/config/runtime/secrets/storage_encryption_key" | msquote }}
+  local:
+    path: /config/runtime/db.sqlite3
+
+notifier:
+  filesystem:
+    filename: /config/runtime/notification.txt
+
+identity_providers:
+  oidc:
+    hmac_secret: {{ secret "/config/runtime/secrets/oidc_hmac_secret" | msquote }}
+    jwks:
+      - key: {{ secret "/config/runtime/secrets/oidc-rsa.key" | mindent 10 "|" | msquote }}
+    clients:
+      - client_id: hby-control
+        client_name: HBY Control
+        client_secret: "$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng"
+        public: false
+        authorization_policy: one_factor
+        require_pkce: false
+        token_endpoint_auth_method: client_secret_basic
+        redirect_uris:
+          - __HBY_CONTROL_PUBLIC_URL__/auth/oidc/callback
+          - http://localhost:8080/auth/oidc/callback
+        scopes:
+          - openid
+          - profile
+          - email
+          - groups
+        response_types:
+          - code
+        grant_types:
+          - authorization_code
+        userinfo_signed_response_alg: none

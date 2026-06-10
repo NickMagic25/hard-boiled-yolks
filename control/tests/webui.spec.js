@@ -35,8 +35,12 @@ test("supports browsing, editing, creating, and deleting files", async ({ page }
     await expect(page.getByRole("heading", { name: "Server Control" })).toBeVisible();
     await expect(page.locator("#statusText")).toHaveText("Running");
     await expect(page.locator("#fileList")).toContainText("server.properties");
+    await expect(page.locator("#filesPage")).toBeVisible();
+    await expect(page.locator("#editorPane")).toBeHidden();
 
     await page.locator("#fileList .entry").filter({ hasText: "server.properties" }).click();
+    await expect(page.locator("#filesPage")).toBeHidden();
+    await expect(page.locator("#editorPane")).toBeVisible();
     await expect(page.locator("#filename")).toHaveText("/server.properties");
     await expect(page.locator("#editor")).toHaveValue(/motd=Hard Boiled Yolks/);
 
@@ -45,15 +49,16 @@ test("supports browsing, editing, creating, and deleting files", async ({ page }
     await expect(page.locator("#toast")).toHaveText("Saved");
     await expectFile(root, "server.properties", "motd=Changed from Playwright\nmax-players=8\n");
 
+    await page.locator("#backToFilesBtn").click();
     page.once("dialog", dialog => dialog.accept("created.txt"));
     await page.getByRole("button", { name: "File" }).click();
-    await page.locator("#fileList .entry").filter({ hasText: "created.txt" }).click();
     await expect(page.locator("#filename")).toHaveText("/created.txt");
     await expect(page.locator("#editor")).toHaveValue("");
     await expectFile(root, "created.txt", "");
 
     page.once("dialog", dialog => dialog.accept());
     await page.getByRole("button", { name: "Delete" }).click();
+    await expect(page.locator("#filesPage")).toBeVisible();
     await expect(page.locator("#fileList")).not.toContainText("created.txt");
     await expectMissing(root, "created.txt");
   });
@@ -80,7 +85,8 @@ test("switches theme and uses sidebar view tabs", async ({ page }) => {
 
     await expect(page.locator("#editorTab")).toBeVisible();
     await expect(page.locator("#consoleTab")).toBeVisible();
-    await expect(page.locator("#editorPane")).toBeVisible();
+    await expect(page.locator("#filesPage")).toBeVisible();
+    await expect(page.locator("#editorPane")).toBeHidden();
     await expect(page.locator("#consolePane")).toBeHidden();
     await expect(page.locator("html")).toHaveAttribute("data-theme-mode", "system");
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
@@ -106,6 +112,57 @@ test("switches theme and uses sidebar view tabs", async ({ page }) => {
     await page.locator("#consoleTab").click();
     await expect(page.locator("#consolePane")).toBeVisible();
     await expect(page.locator("#editorPane")).toBeHidden();
+    await expect(page.locator("#filesPage")).toBeHidden();
+
+    await page.locator("#editorTab").click();
+    await expect(page.locator("#filesPage")).toBeVisible();
+    await expect(page.locator("#consolePane")).toBeHidden();
+  });
+});
+
+test("supports three-dot selection, bulk move, tar, and untar", async ({ page }) => {
+  await usingControlServer(async ({ baseURL, root }) => {
+    await fs.writeFile(path.join(root, "a.txt"), "a", "utf8");
+    await fs.writeFile(path.join(root, "b.txt"), "b", "utf8");
+    await fs.writeFile(path.join(root, "c.txt"), "c", "utf8");
+    await fs.mkdir(path.join(root, "moved"));
+    await fs.mkdir(path.join(root, "extract"));
+
+    await page.goto(baseURL);
+
+    const rowA = page.locator("#fileList .entry").filter({ hasText: "a.txt" });
+    await rowA.getByTitle("Actions").click();
+    const downloadItem = page.locator("#rowMenu a", { hasText: "Download" });
+    await expect(downloadItem).toHaveCSS("display", "flex");
+    await expect(downloadItem).toHaveCSS("text-decoration-line", "none");
+    await page.getByRole("button", { name: "Select" }).click();
+    await expect(page.locator("#selectionBar")).toBeVisible();
+    await expect(rowA.locator("input[type='checkbox']")).toBeChecked();
+
+    await page.locator("#fileList .entry").filter({ hasText: "b.txt" }).click();
+    await expect(page.locator("#selectionCount")).toHaveText("2 selected");
+    page.once("dialog", dialog => dialog.accept("/moved"));
+    await page.locator("#moveSelectedBtn").click();
+    await expect(page.locator("#toast")).toHaveText("Moved");
+    await expectFile(root, path.join("moved", "a.txt"), "a");
+    await expectFile(root, path.join("moved", "b.txt"), "b");
+
+    const rowC = page.locator("#fileList .entry").filter({ hasText: "c.txt" });
+    await rowC.getByTitle("Actions").click();
+    await page.getByRole("button", { name: "Select" }).click();
+    page.once("dialog", dialog => dialog.accept("/bundle.tar"));
+    await page.locator("#tarSelectedBtn").click();
+    await expect(page.locator("#toast")).toHaveText("Archive created");
+    await expect(page.locator("#fileList")).toContainText("bundle.tar");
+
+    const rowBundle = page.locator("#fileList .entry").filter({ hasText: "bundle.tar" });
+    await rowBundle.getByTitle("Actions").click();
+    await page.getByRole("button", { name: "Select" }).click();
+    await expect(page.locator("#untarSelectedBtn")).toBeEnabled();
+    page.once("dialog", dialog => dialog.accept("/extract"));
+    await page.locator("#untarSelectedBtn").click();
+    await expect(page.locator("#toast")).toHaveText("Extracted");
+    await expectFile(root, path.join("extract", "c.txt"), "c");
   });
 });
 
