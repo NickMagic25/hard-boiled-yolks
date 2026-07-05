@@ -1,0 +1,17 @@
+The Minecraft service is available in-cluster at:
+
+  {{ include "minecraft-modrinth-fabric.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}
+
+{{- if not .Values.minecraft.eula }}
+
+The chart rendered with minecraft.eula=false. Set minecraft.eula=true after you accept the Minecraft EULA, or the server process will refuse to start.
+{{- end }}
+
+{{- if and .Values.modrinth.auth.enabled (not .Values.modrinth.auth.createSecret) (not .Values.modrinth.auth.existingSecret) }}
+
+Create the expected Modrinth token Secret before installing or starting the pod:
+
+  kubectl -n {{ .Release.Namespace }} create secret generic {{ include "minecraft-modrinth-fabric.tokenSecretName" . }} \
+    --from-literal={{ .Values.modrinth.auth.secretKey }}="$MODRINTH_TOKEN"
+{{- end }}
+

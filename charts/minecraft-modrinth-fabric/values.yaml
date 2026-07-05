@@ -1,0 +1,160 @@
+replicaCount: 1
+
+image:
+  repository: hard-boiled-yolks
+  tag: java_21
+  pullPolicy: IfNotPresent
+
+installerImage:
+  repository: hard-boiled-yolks
+  tag: installer_modrinth
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: false
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 1000
+  runAsGroup: 1000
+  runAsNonRoot: true
+  runAsUser: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+installerSecurityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+minecraft:
+  # Set to true only when you accept the Minecraft EULA.
+  eula: false
+  serverJarFile: server.jar
+  javaOpts: "-Xms128M -Xmx4G"
+  args: nogui
+  dataDir: /home/container
+  extraEnv: []
+
+modrinth:
+  apiBase: https://api.modrinth.com/v2
+  projectId: ""
+  versionId: ""
+  versionNumber: ""
+  userAgent: minecraft-modrinth-fabric-chart/0.1
+  installPolicy: IfChanged
+  fabricInstallerVersion: "1.0.3"
+
+  auth:
+    enabled: true
+    # Modrinth personal access tokens currently work as a raw Authorization value.
+    # OAuth-style tokens can use bearer.
+    scheme: raw
+    existingSecret: ""
+    secretKey: MODRINTH_TOKEN
+    createSecret: false
+    token: ""
+
+  # If url and sha512 are set, the installer skips the version API lookup and uses
+  # this pinned primary .mrpack. If unset, it fetches project version JSON and
+  # selects versionId, versionNumber, or the first returned version.
+  pack:
+    url: ""
+    filename: modrinth.mrpack
+    sha512: ""
+
+service:
+  type: ClusterIP
+  port: 25565
+  annotations: {}
+
+persistence:
+  enabled: true
+  existingClaim: ""
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+  annotations: {}
+
+probes:
+  enabled: true
+  readiness:
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 12
+  liveness:
+    initialDelaySeconds: 180
+    periodSeconds: 30
+    timeoutSeconds: 3
+    failureThreshold: 6
+
+resources: {}
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+externalSecrets:
+  enabled: false
+  # Optional list form for rendering several ExternalSecret resources.
+  # If items is empty, the metadata/spec object below renders one ExternalSecret.
+  items: []
+  metadata:
+    name: ""
+    namespace: ""
+    annotations: {}
+    labels: {}
+  spec:
+    refreshInterval: 1h
+    secretStoreRef:
+      kind: ClusterSecretStore
+      name: ""
+    target:
+      name: ""
+      creationPolicy: "Owner"
+    data:
+      - secretKey:
+        remoteRef:
+          key: ""
+          property: ""
+
+gatewayIngress:
+  enabled: false
+  data:
+    - kind: ""
+      name: "" # metadata.name in gateway.networking.k8s.io/v1
+      namespace: ""
+      hostname: "" # spec.hostnames[] if kind=HTTPRoute, metadata.annotations.external-dns.alpha.kubernetes.io/hostname if externalDNS=true
+      hostnames: []
+      externalDNS:  false
+      port: ""
+      annotations: {}
+      labels: {}
+      spec:
+        parentRefs:
+          - name: ""
+            namespace: ""
+            sectionName: ""
+        rules:
+          - matches:
+            - path:
+                type: ""
+                value: ""
