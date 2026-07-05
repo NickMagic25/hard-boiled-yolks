@@ -1,0 +1,56 @@
+name: hby-minecraft-oidc
+
+services:
+  authelia:
+    image: ${HBY_AUTHELIA_IMAGE:-docker.io/authelia/authelia:4.39.19}
+    restart: unless-stopped
+    environment:
+      X_AUTHELIA_CONFIG_FILTERS: template
+      TZ: ${TZ:-UTC}
+    ports:
+      - "${HBY_AUTHELIA_PORT:-9091}:9091"
+    volumes:
+      - ./data/authelia/configuration.yml:/config/configuration.yml:ro
+      - ./data/authelia:/config/runtime
+    networks:
+      hby-oidc:
+        aliases:
+          - auth.localhost
+
+  minecraft:
+    image: ${HBY_MINECRAFT_IMAGE:-hard-boiled-yolks:java_25-minecraft-oidc}
+    restart: unless-stopped
+    depends_on:
+      - authelia
+    environment:
+      HBY_CONTROL_ADDR: ":8080"
+      HBY_CONTROL_ROOT: /home/container
+      HBY_CONTROL_SESSION_KEY: ${HBY_CONTROL_SESSION_KEY:-local-hby-control-session-key-change-me}
+      HBY_CONTROL_OIDC_ISSUER_URL: ${HBY_AUTHELIA_URL:-https://auth.localhost:9091}
+      HBY_CONTROL_OIDC_CLIENT_ID: hby-control
+      HBY_CONTROL_OIDC_CLIENT_SECRET: insecure_secret
+      HBY_CONTROL_OIDC_REDIRECT_URL: ${HBY_CONTROL_PUBLIC_URL:-http://hby.localhost:8080}/auth/oidc/callback
+      HBY_CONTROL_OIDC_SCOPES: openid profile email groups
+      HBY_CONTROL_OIDC_ALLOWED_EMAILS: ${AUTHELIA_EMAIL:-hby@example.com}
+      SSL_CERT_FILE: ${HBY_CONTROL_SSL_CERT_FILE:-/home/container/authelia-ca.pem}
+      MC_MEMORY: ${MC_MEMORY:-1024M}
+      MC_VERSION: ${MC_VERSION:-latest}
+      STARTUP: /bin/sh /home/container/start-server.sh
+      TZ: ${TZ:-UTC}
+    ports:
+      - "${HBY_CONTROL_PORT:-8080}:8080"
+      - "${HBY_MINECRAFT_PORT:-25565}:25565"
+    volumes:
+      - minecraft-data:/home/container
+      - ./minecraft/start-server.sh:/home/container/start-server.sh:ro
+      - ./data/authelia/tls/ca.crt:/home/container/authelia-ca.pem:ro
+    networks:
+      hby-oidc:
+        aliases:
+          - hby.localhost
+
+networks:
+  hby-oidc:
+
+volumes:
+  minecraft-data:

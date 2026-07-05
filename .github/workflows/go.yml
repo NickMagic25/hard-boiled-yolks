@@ -8,6 +8,8 @@ on:
       - master
     paths:
       - go/**
+      - control/**
+      - .dockerignore
 jobs:
   push:
     name: "yolks:go_${{ matrix.tag }}"
@@ -36,7 +38,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - uses: docker/build-push-action@v4
         with:
-          context: ./go
+          context: .
           file: ./go/${{ matrix.tag }}/Dockerfile
           platforms: linux/amd64, linux/arm64
           push: true

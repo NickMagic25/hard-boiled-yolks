@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Server Control</title>
+<script src="/assets/js/theme.js"></script>
+<style>
+:root{color-scheme:light;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;--bg:#eef2f6;--header:#ffffff;--sidebar:#f8fafc;--surface:#ffffff;--editor:#ffffff;--console:#0b1020;--consoleText:#e5e7eb;--text:#111827;--muted:#5d6876;--border:#d6dee8;--button:#ffffff;--buttonText:#111827;--hover:#e7edf5;--active:#111827;--activeText:#ffffff;--primary:#0f73d9;--danger:#a61b1b;--accent:#19c7c7;--shadow:rgba(15,23,42,.08)}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#030506;--header:#050708;--sidebar:#070a0d;--surface:#090d12;--editor:#050709;--console:#020407;--consoleText:#e8edf3;--text:#f4f7fa;--muted:#8b99a8;--border:#1a232d;--button:#0b1117;--buttonText:#f2f6fa;--hover:#111922;--active:#dffbff;--activeText:#031014;--primary:#33a8ff;--danger:#ff8a8a;--accent:#27e0d2;--shadow:rgba(0,0,0,.48)}
+*{box-sizing:border-box}body{margin:0;height:100vh;height:100dvh;overflow:hidden;background:var(--bg);color:var(--text)}.app{display:grid;grid-template-rows:56px 1fr;height:100vh;height:100dvh}
+header{display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid var(--border);background:var(--header);box-shadow:0 1px 0 var(--shadow)}
+h1{font-size:16px;margin:0;font-weight:750}.headerActions{display:flex;align-items:center;gap:14px}.status{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}.dot{width:9px;height:9px;border-radius:50%;background:#9ca3af}.dot.running{background:#22c55e}
+.themeControl{display:flex;align-items:center;gap:2px;padding:2px;border:1px solid var(--border);border-radius:6px;background:var(--sidebar)}.themeControl label{position:relative}.themeControl input{position:absolute;opacity:0;pointer-events:none}.themeControl span{height:28px;min-width:52px;border-radius:4px;color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;padding:0 8px;cursor:pointer}.themeControl input:checked+span{background:var(--active);color:var(--activeText)}.themeControl input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+.main{display:grid;grid-template-rows:auto minmax(0,1fr);min-height:0;background:var(--bg)}.modeTabs{display:flex;gap:6px;padding:10px 10px 8px;border-bottom:1px solid var(--border);background:var(--sidebar)}.modeTab{flex:1;height:34px}.modeTab.active{border-color:var(--accent);color:var(--text);box-shadow:inset 0 -2px 0 var(--accent)}.page{min-width:0;min-height:0}.files{background:var(--sidebar);display:grid;grid-template-rows:auto auto minmax(0,1fr)}
+.toolbar{display:flex;gap:6px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+button,.button{height:32px;min-width:32px;border:1px solid var(--border);background:var(--button);border-radius:6px;color:var(--buttonText);font:inherit;font-size:13px;font-weight:650;padding:0 9px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+button:hover,.button:hover{background:var(--hover)}button.icon{font-size:16px;padding:0;width:32px}.button.danger,button.danger{border-color:color-mix(in srgb,var(--danger),var(--border) 55%);color:var(--danger)}.button.primary,button.primary{background:var(--primary);color:white;border-color:var(--primary)}
+button:disabled{opacity:.45;cursor:not-allowed}.path{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:9px 10px;border-bottom:1px solid var(--border)}
+.selectionBar{display:flex;gap:6px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--border);background:var(--surface);flex-wrap:wrap}.selectionCount{margin-right:auto;color:var(--muted);font-size:12px;font-weight:700}.list{overflow:auto}.entry{display:grid;grid-template-columns:24px minmax(0,1fr) auto 32px;gap:8px;align-items:center;width:100%;height:38px;padding:0 10px;border:0;border-radius:0;background:transparent;text-align:left;font-weight:500}.entry:hover,.entry.active{background:var(--hover)}.entry.active{box-shadow:inset 3px 0 0 var(--accent)}.entry.selected{background:color-mix(in srgb,var(--accent),transparent 88%)}.entry .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.entry .size{font-size:12px;color:var(--muted);justify-self:end;white-space:nowrap}.rowSlot{width:32px;display:flex;justify-content:center}.rowAction{height:28px;width:28px;min-width:28px;padding:0;color:var(--muted)}.selectBox{width:18px;height:18px;accent-color:var(--accent);justify-self:center}.rowMenu{position:fixed;z-index:20;min-width:132px;border:1px solid var(--border);border-radius:6px;background:var(--surface);box-shadow:0 18px 42px var(--shadow);padding:4px}.rowMenu button,.rowMenu a{display:flex;align-items:center;justify-content:flex-start;width:100%;height:30px;border:0;border-radius:4px;background:transparent;color:var(--text);font:inherit;font-size:13px;font-weight:650;padding:0 10px;text-align:left;text-decoration:none;cursor:pointer}.rowMenu button:hover,.rowMenu a:hover{background:var(--hover)}
+.workspace{display:grid;grid-template-rows:1fr;min-width:0;min-height:0;padding:24px;background:var(--bg)}.editorWrap{min-height:0;display:grid;grid-template-rows:auto 1fr;border:1px solid var(--border);background:var(--surface);box-shadow:0 10px 24px var(--shadow)}.editorHead{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border);background:var(--surface)}.editorTitle{display:flex;align-items:center;gap:8px;min-width:0}.filename{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
+textarea{width:100%;height:100%;resize:none;border:0;outline:0;padding:14px;font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--editor);color:var(--text)}.empty{display:grid;place-items:center;color:var(--muted);font-size:14px;background:var(--editor)}
+.console{height:100%;min-height:0;overflow:hidden;border:1px solid var(--border);background:var(--console);color:var(--consoleText);display:grid;grid-template-rows:auto minmax(0,1fr) auto;box-shadow:0 10px 24px var(--shadow)}.consoleHead{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border-bottom:1px solid #1f2937}.processControls{display:flex;gap:6px;flex-wrap:wrap}.processControls button{background:#111827;color:#e5e7eb;border-color:#374151}.processControls button.stop{color:#fecaca}
+pre{min-height:0;margin:0;padding:12px;overflow:auto;overscroll-behavior:contain;white-space:pre-wrap;word-break:break-word;font:12px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}.consoleForm{display:grid;grid-template-columns:1fr auto;gap:8px;padding:10px;border-top:1px solid #1f2937}.consoleForm input{border:1px solid #374151;background:#111827;color:#e5e7eb;border-radius:6px;padding:0 10px;font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;min-width:0}
+input[type=file]{display:none}.toast{position:fixed;right:14px;bottom:14px;background:var(--active);color:var(--activeText);border:1px solid var(--border);border-radius:6px;padding:10px 12px;font-size:13px;box-shadow:0 10px 30px var(--shadow)}.hide,[hidden]{display:none!important}
+:root[data-theme="dark"] header{box-shadow:0 1px 0 rgba(255,255,255,.03)}:root[data-theme="dark"] .files,:root[data-theme="dark"] .editorWrap,:root[data-theme="dark"] .console{box-shadow:0 18px 42px rgba(0,0,0,.38)}:root[data-theme="dark"] .themeControl{background:#080c10;border-color:#1c2732}:root[data-theme="dark"] .themeControl span{color:#91a0af}:root[data-theme="dark"] .themeControl input:checked+span{background:var(--active);color:var(--activeText)}:root[data-theme="dark"] .modeTab.active{background:#071d20;color:#eaffff}:root[data-theme="dark"] .entry.active{background:#0d191f}:root[data-theme="dark"] .console{background:linear-gradient(180deg,#020407,#05070c)}:root[data-theme="dark"] .consoleHead,:root[data-theme="dark"] .consoleForm{border-color:#17212b}:root[data-theme="dark"] .processControls button,:root[data-theme="dark"] .consoleForm input{background:#060a0f;border-color:#24313d;color:#eef4f8}:root[data-theme="dark"] .consoleForm input::placeholder{color:#7f8c9a}:root[data-theme="dark"] .processControls button.stop{color:#ffb4b4}:root[data-theme="dark"] pre{scrollbar-color:#263341 #05070c}:root[data-theme="dark"] .list{scrollbar-color:#263341 #070a0d}
+@media (max-width:760px){body{overflow:hidden}.app{height:100vh;height:100dvh;min-height:0}.main{height:calc(100vh - 56px);height:calc(100dvh - 56px);min-height:0;overflow:hidden}.files{min-height:0}.workspace{min-height:0;overflow:hidden;padding:10px}.toolbar,.selectionBar{gap:5px}button,.button{font-size:12px;padding:0 7px}.entry{grid-template-columns:20px minmax(0,1fr) auto 32px;padding:0 8px}.editorHead{align-items:flex-start}.editorTitle{flex:1}.editorHead>div:last-child{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}}
+</style>
+</head>
+<body>
+<div class="app">
+<header><h1>Server Control</h1><div class="headerActions"><div class="themeControl" role="radiogroup" aria-label="Theme"><label><input id="themeSystem" name="themeMode" type="radio" value="system"><span>System</span></label><label><input id="themeLight" name="themeMode" type="radio" value="light"><span>Light</span></label><label><input id="themeDark" name="themeMode" type="radio" value="dark"><span>Dark</span></label></div><div class="status"><span id="statusDot" class="dot"></span><span id="statusText">Loading</span><form action="/auth/logout" method="post"><button class="icon" title="Log out">⎋</button></form></div></div></header>
+<main class="main">
+<div class="modeTabs"><button class="modeTab active" id="editorTab">Editor</button><button class="modeTab" id="consoleTab">Console</button></div>
+<section class="files page" id="filesPage">
+<div class="toolbar">
+<button class="icon" id="upBtn" title="Up">↑</button>
+<button class="icon" id="refreshBtn" title="Refresh">⟳</button>
+<button id="newFileBtn" title="New file">File</button>
+<button id="newDirBtn" title="New folder">Folder</button>
+<button id="uploadBtn" title="Upload">Upload</button>
+<input type="file" id="uploadInput" multiple>
+</div>
+<div class="selectionBar" id="selectionBar" hidden><span class="selectionCount" id="selectionCount">0 selected</span><button id="moveSelectedBtn">Move</button><button id="tarSelectedBtn">Tar</button><button id="untarSelectedBtn">Untar</button><button class="danger" id="deleteSelectedBtn">Delete</button><button id="clearSelectionBtn">Clear</button></div>
+<div class="path" id="cwd">/</div>
+<div class="list" id="fileList"></div>
+</section>
+<section class="workspace page" id="workspacePage" hidden>
+<div class="editorWrap" id="editorPane">
+<div class="editorHead"><div class="editorTitle"><button class="icon" id="backToFilesBtn" title="Back">←</button><div class="filename" id="filename">No file selected</div></div><div><a class="button" id="downloadBtn" href="#" download>Download</a> <button class="danger" id="deleteBtn">Delete</button> <button class="primary" id="saveBtn">Save</button></div></div>
+<textarea id="editor" spellcheck="false" disabled></textarea>
+<div class="empty hide" id="emptyState">Select a text file to view or edit it.</div>
+</div>
+<section class="console" id="consolePane">
+<div class="consoleHead"><strong>Console</strong><div class="processControls"><button id="startBtn">Start</button><button id="restartBtn">Restart</button><button class="stop" id="stopBtn">Stop</button></div></div>
+<pre id="consoleOutput"></pre>
+<form class="consoleForm" id="consoleForm"><input id="consoleInput" autocomplete="off" placeholder="Send command to server"><button type="submit">Send</button></form>
+</section>
+</section>
+</main>
+</div>
+<div class="rowMenu hide" id="rowMenu"></div>
+<div class="toast hide" id="toast"></div>
+<script src="/assets/js/index.js" defer></script>
+</body>
+</html>

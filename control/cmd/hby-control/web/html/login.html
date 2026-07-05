@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Server Control</title>
+<script src="/assets/js/theme.js"></script>
+<style>
+:root{color-scheme:light;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;--bg:#eef2f6;--header:#ffffff;--sidebar:#f8fafc;--surface:#ffffff;--editor:#ffffff;--console:#0b1020;--consoleText:#e5e7eb;--text:#111827;--muted:#5d6876;--border:#d6dee8;--button:#ffffff;--buttonText:#111827;--hover:#e7edf5;--active:#111827;--activeText:#ffffff;--primary:#0f73d9;--danger:#a61b1b;--accent:#19c7c7;--shadow:rgba(15,23,42,.08)}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#030506;--header:#050708;--sidebar:#070a0d;--surface:#090d12;--editor:#050709;--console:#020407;--consoleText:#e8edf3;--text:#f4f7fa;--muted:#8b99a8;--border:#1a232d;--button:#0b1117;--buttonText:#f2f6fa;--hover:#111922;--active:#dffbff;--activeText:#031014;--primary:#33a8ff;--danger:#ff8a8a;--accent:#27e0d2;--shadow:rgba(0,0,0,.48)}
+*{box-sizing:border-box}body{margin:0;height:100vh;height:100dvh;overflow:hidden;background:var(--bg);color:var(--text)}.app{display:grid;grid-template-rows:56px 1fr;height:100vh;height:100dvh}
+header{display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid var(--border);background:var(--header);box-shadow:0 1px 0 var(--shadow)}
+h1{font-size:16px;margin:0;font-weight:750}.headerActions{display:flex;align-items:center;gap:14px}
+.themeControl{display:flex;align-items:center;gap:2px;padding:2px;border:1px solid var(--border);border-radius:6px;background:var(--sidebar)}.themeControl label{position:relative}.themeControl input{position:absolute;opacity:0;pointer-events:none}.themeControl span{height:28px;min-width:52px;border-radius:4px;color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;padding:0 8px;cursor:pointer}.themeControl input:checked+span{background:var(--active);color:var(--activeText)}.themeControl input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+.loginShell{display:grid;align-items:center;justify-items:center;min-height:0;padding:24px;background:var(--bg)}.loginPanel{width:min(420px,100%);border:1px solid var(--border);background:var(--surface);box-shadow:0 10px 24px var(--shadow);padding:24px}.loginTitle{font-size:22px;line-height:1.2;margin:0 0 18px;font-weight:800}.fieldLabel{display:block;font-size:13px;font-weight:700;margin:14px 0 6px;color:var(--text)}input{width:100%;height:40px;border:1px solid var(--border);border-radius:6px;background:var(--editor);color:var(--text);padding:0 12px;font:inherit}input:focus{outline:2px solid var(--accent);outline-offset:2px}
+button,.button{height:40px;min-width:40px;border:1px solid var(--border);background:var(--button);border-radius:6px;color:var(--buttonText);font:inherit;font-size:14px;font-weight:700;padding:0 14px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}button:hover,.button:hover{background:var(--hover)}button.primary,.button.primary{background:var(--primary);border-color:var(--primary);color:white}.row{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:18px;flex-wrap:wrap}.muted{color:var(--muted);font-size:13px;line-height:1.45;margin:16px 0 0}
+[hidden]{display:none!important}:root[data-theme="dark"] header{box-shadow:0 1px 0 rgba(255,255,255,.03)}:root[data-theme="dark"] .themeControl{background:#080c10;border-color:#1c2732}:root[data-theme="dark"] .themeControl span{color:#91a0af}:root[data-theme="dark"] .themeControl input:checked+span{background:var(--active);color:var(--activeText)}:root[data-theme="dark"] .loginPanel{box-shadow:0 18px 42px rgba(0,0,0,.38)}:root[data-theme="dark"] input{border-color:#24313d}:root[data-theme="dark"] .button.primary,:root[data-theme="dark"] button.primary{color:#031014;background:#dffbff;border-color:#dffbff}
+@media (max-width:760px){.app{height:100vh;height:100dvh}.loginShell{align-items:end;padding:10px}.loginPanel{width:100%;padding:20px}.headerActions{gap:8px}.themeControl span{min-width:48px}}
+</style>
+</head>
+<body data-password-enabled="{{PASSWORD_ENABLED}}" data-oidc-enabled="{{OIDC_ENABLED}}">
+<div class="app">
+<header><h1>Server Control</h1><div class="headerActions"><div class="themeControl" role="radiogroup" aria-label="Theme"><label><input id="themeSystem" name="themeMode" type="radio" value="system"><span>System</span></label><label><input id="themeLight" name="themeMode" type="radio" value="light"><span>Light</span></label><label><input id="themeDark" name="themeMode" type="radio" value="dark"><span>Dark</span></label></div></div></header>
+<main class="loginShell">
+<section class="loginPanel">
+<h2 class="loginTitle">Server Control</h2>
+<form method="post" action="/auth/login" id="passwordForm">
+<label class="fieldLabel" for="username">Username</label>
+<input id="username" name="username" autocomplete="username" required>
+<label class="fieldLabel" for="password">Password</label>
+<input id="password" name="password" type="password" autocomplete="current-password" required>
+<div class="row"><button class="primary" type="submit">Log In</button></div>
+</form>
+<div class="row" id="oidcRow"><a class="button primary" href="/auth/oidc/login">Log In With OIDC</a></div>
+<p class="muted">Authentication is enabled by the container environment.</p>
+</section>
+</main>
+</div>
+<script src="/assets/js/login.js" defer></script>
+</body>
+</html>

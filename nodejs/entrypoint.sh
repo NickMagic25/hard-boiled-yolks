@@ -45,5 +45,8 @@ PARSED=$(echo "${STARTUP}" | sed -e 's/{{/${/g' -e 's/}}/}/g' | eval echo "$(cat
 # Display the command we're running in the output, and then execute it with the env
 # from the container itself.
 printf "\033[1m\033[33mcontainer@pterodactyl~ \033[0m%s\n" "$PARSED"
+if command -v hby-control >/dev/null 2>&1; then
+  exec hby-control run -- /bin/sh -lc "$PARSED"
+fi
 # shellcheck disable=SC2086
 exec env ${PARSED}

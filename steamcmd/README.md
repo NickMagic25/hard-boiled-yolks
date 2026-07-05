@@ -22,6 +22,7 @@ melange keygen
 ### 2. Build local APK packages
 
 ```sh
+melange build ../control/melange.yaml --source-dir .. --signing-key melange.rsa --out-dir ./packages
 melange build runtime/melange.yaml --source-dir . --signing-key melange.rsa
 melange build entrypoint/melange.yaml --source-dir . --signing-key melange.rsa
 ```

@@ -8,6 +8,8 @@ on:
       - master
     paths:
       - games/**
+      - control/**
+      - .dockerignore
 jobs:
   push:
     name: "games:${{ matrix.game }}"
@@ -31,7 +33,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - uses: docker/build-push-action@v4
         with:
-          context: ./games/${{ matrix.game }}
+          context: .
           file: ./games/${{ matrix.game }}/Dockerfile
           platforms: linux/amd64
           push: true

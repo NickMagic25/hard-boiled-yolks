@@ -20,6 +20,11 @@
 # SOFTWARE.
 #
 
+FROM        --platform=$BUILDPLATFORM golang:1.24-alpine AS hby-control-builder
+WORKDIR     /src/control
+COPY        control/ ./
+RUN         CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /usr/bin/hby-control ./cmd/hby-control
+
 FROM 		--platform=$TARGETOS/$TARGETARCH ghcr.io/pterodactyl/yolks:java_25
 
 LABEL       author="William V." maintainer="william.venner@infraly.co"
@@ -36,10 +41,12 @@ RUN			apt-get update -y \
 				&& apt-get install -y unzip jq \
 				&& rm -rf /var/lib/apt/lists/*
 
+COPY        --from=hby-control-builder /usr/bin/hby-control /usr/bin/hby-control
+
 USER        container
 ENV         USER=container HOME=/home/container
 WORKDIR     /home/container
 
-COPY 		./entrypoint.sh /entrypoint.sh
+COPY 		games/hytale/entrypoint.sh /entrypoint.sh
 
 CMD         [ "/bin/bash", "/entrypoint.sh" ]
