@@ -1,0 +1,283 @@
+{
+  "$schema": "https://json-schema.org/schema#",
+  "type": "object",
+  "properties": {
+    "replicaCount": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "minecraft": {
+      "type": "object",
+      "properties": {
+        "eula": {
+          "type": "boolean"
+        },
+        "serverJarFile": {
+          "type": "string",
+          "minLength": 1
+        },
+        "javaOpts": {
+          "type": "string"
+        },
+        "args": {
+          "type": "string"
+        },
+        "dataDir": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^/"
+        }
+      }
+    },
+    "modrinth": {
+      "type": "object",
+      "properties": {
+        "apiBase": {
+          "type": "string",
+          "format": "uri"
+        },
+        "projectId": {
+          "type": "string"
+        },
+        "versionId": {
+          "type": "string"
+        },
+        "versionNumber": {
+          "type": "string"
+        },
+        "userAgent": {
+          "type": "string",
+          "minLength": 1
+        },
+        "installPolicy": {
+          "type": "string",
+          "enum": [
+            "IfChanged",
+            "Always"
+          ]
+        },
+        "fabricInstallerVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "auth": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "scheme": {
+              "type": "string",
+              "enum": [
+                "raw",
+                "bearer",
+                "Bearer"
+              ]
+            },
+            "existingSecret": {
+              "type": "string"
+            },
+            "secretKey": {
+              "type": "string",
+              "minLength": 1
+            },
+            "createSecret": {
+              "type": "boolean"
+            },
+            "token": {
+              "type": "string"
+            }
+          }
+        },
+        "pack": {
+          "type": "object",
+          "properties": {
+            "url": {
+              "type": "string"
+            },
+            "filename": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha512": {
+              "type": "string",
+              "pattern": "^$|^[A-Fa-f0-9]{128}$"
+            }
+          }
+        }
+      }
+    },
+    "service": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        }
+      }
+    },
+    "persistence": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "existingClaim": {
+          "type": "string"
+        },
+        "storageClassName": {
+          "type": "string"
+        },
+        "size": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "probes": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "externalSecrets": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/externalSecret"
+          }
+        },
+        "metadata": {
+          "type": "object"
+        },
+        "spec": {
+          "type": "object"
+        }
+      }
+    },
+    "gatewayIngress": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/gatewayRoute"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "externalSecret": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "namespace": {
+              "type": "string"
+            },
+            "annotations": {
+              "type": "object"
+            },
+            "labels": {
+              "type": "object"
+            }
+          }
+        },
+        "spec": {
+          "type": "object"
+        }
+      }
+    },
+    "gatewayRoute": {
+      "type": "object",
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "apiVersion": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "",
+            "TCPRoute",
+            "HTTPRoute"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "hostname": {
+          "type": "string"
+        },
+        "hostnames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "externalDNS": {
+          "type": "boolean"
+        },
+        "port": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "annotations": {
+          "type": "object"
+        },
+        "labels": {
+          "type": "object"
+        },
+        "spec": {
+          "type": "object",
+          "properties": {
+            "parentRefs": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "rules": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

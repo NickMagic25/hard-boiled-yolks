@@ -97,6 +97,12 @@ Authentication is disabled unless password or OIDC environment variables are set
 
 SteamCMD image with Valve's Steam console client, rcon-cli, and 32-bit runtime libraries. Includes an entrypoint that handles auto-updating game servers on start via `SRCDS_APPID` and `STARTUP` environment variables. See [`steamcmd/README.md`](steamcmd/README.md) for build instructions and full environment variable reference.
 
+### Installers
+
+* [`installer_modrinth`](installers/modrinth) — `hard-boiled-yolks:installer_modrinth`
+
+Wolfi-based installer image with `curl`, `jq`, `unzip`, CA certificates, and BusyBox utilities for installing Modrinth `.mrpack` files in init containers. See [`installers/README.md`](installers/README.md) for build instructions.
+
 ## Contributing
 
 Each image is defined by an `apko.yaml` in its version folder (e.g. `java/21/apko.yaml`). To add a new version, create a new folder with its apko config and update the corresponding GitHub Actions workflow.
