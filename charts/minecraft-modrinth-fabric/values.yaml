@@ -54,7 +54,15 @@ minecraft:
   args: nogui
   dataDir: /home/container
   extraPorts: []
-  extraEnv: []
+  extraEnv:
+    - name: HBY_CONTROL_ADDR
+      value: 0.0.0.0:8080
+    - name: HBY_CONTROL_ROOT
+      value: /home/container
+    - name: HBY_CONTROL_SECURE_COOKIES
+      value: "true"
+    - name: HBY_CONTROL_OIDC_SCOPES
+      value: "openid profile email groups"
 
 modrinth:
   apiBase: https://api.modrinth.com/v2
