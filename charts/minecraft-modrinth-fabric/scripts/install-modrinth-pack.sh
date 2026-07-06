@@ -11,7 +11,7 @@ require_cmd() {
   fi
 }
 
-for cmd in awk basename cp curl dirname grep jq mkdir mktemp mv rm sha512sum tr unzip wc; do
+for cmd in awk basename chmod cp curl dirname grep jq mkdir mktemp mv rm sha512sum tr unzip wc; do
   require_cmd "$cmd"
 done
 
@@ -250,7 +250,10 @@ mkdir -p "$overrides_dir"
 if unzip -oq "$pack_file" "overrides/*" -d "$overrides_dir"; then
   if [ -d "${overrides_dir}/overrides" ]; then
     echo "Copying Modrinth overrides into ${server_dir}."
-    cp -a "${overrides_dir}/overrides/." "$server_dir/"
+    # Packs can contain restrictive override modes; normalize before copying as UID 1000.
+    chmod -R u+rwX "${overrides_dir}/overrides"
+    # Do not preserve archive ownership, timestamps, or permissions on the PVC.
+    cp -R "${overrides_dir}/overrides/." "$server_dir/"
   fi
 else
   echo "No Modrinth overrides directory found."

@@ -8,7 +8,7 @@ It includes:
 - `jq`
 - `unzip`
 - CA certificates
-- BusyBox utilities such as `sha512sum`, `awk`, `grep`, and `mktemp`
+- BusyBox utilities such as `sha512sum`, `awk`, `chmod`, `grep`, and `mktemp`
 
 Build from the repository root:
 

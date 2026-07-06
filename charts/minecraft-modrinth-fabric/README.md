@@ -11,7 +11,7 @@ The installer:
 - downloads every file where `env.server != "unsupported"`
 - verifies every downloaded file with SHA512
 - writes files using their pack paths, such as `mods/...` and `resourcepacks/...`
-- copies `overrides/` into the server root
+- normalizes and copies `overrides/` into the server root without preserving archive metadata
 - downloads the Fabric server jar using the Minecraft and loader versions from `modrinth.index.json`
 - starts Minecraft with the installed Fabric server jar
 
