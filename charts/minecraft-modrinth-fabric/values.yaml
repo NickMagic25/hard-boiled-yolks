@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: hard-boiled-yolks
-  tag: java_21
+  tag: java_25
   pullPolicy: IfNotPresent
 
 installerImage:
@@ -47,9 +47,13 @@ minecraft:
   # Set to true only when you accept the Minecraft EULA.
   eula: false
   serverJarFile: server.jar
+  startup: 'java {{JAVA_OPTS}} -jar {{SERVER_JARFILE}} {{MINECRAFT_ARGS}}'
+  command: []
+  commandArgs: []
   javaOpts: "-Xms128M -Xmx4G"
   args: nogui
   dataDir: /home/container
+  extraPorts: []
   extraEnv: []
 
 modrinth:
@@ -82,6 +86,7 @@ modrinth:
 service:
   type: ClusterIP
   port: 25565
+  extraPorts: []
   annotations: {}
 
 persistence:
@@ -114,6 +119,8 @@ affinity: {}
 
 externalSecrets:
   enabled: false
+  # Every rendered ExternalSecret target Secret is added to the Minecraft
+  # container with envFrom, so each Secret key becomes an environment variable.
   # Optional list form for rendering several ExternalSecret resources.
   # If items is empty, the metadata/spec object below renders one ExternalSecret.
   items: []

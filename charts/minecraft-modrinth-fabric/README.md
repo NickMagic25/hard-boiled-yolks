@@ -15,6 +15,32 @@ The installer:
 - downloads the Fabric server jar using the Minecraft and loader versions from `modrinth.index.json`
 - starts Minecraft with the installed Fabric server jar
 
+The default runtime image is a Hard Boiled Yolks Java image. The chart sets `STARTUP` and lets the image entrypoint run so `hby-control` can supervise the server when the control package is installed in the image. Set `minecraft.command` and `minecraft.commandArgs` only when using an image that needs an explicit Kubernetes command override.
+
+## Controller Port
+
+Hard Boiled Yolks Java images include `hby-control`, which listens on port 8080 by default. Expose it with an additional container port and Service port:
+
+```yaml
+minecraft:
+  extraPorts:
+    - name: control
+      containerPort: 8080
+      protocol: TCP
+  extraEnv:
+    - name: HBY_CONTROL_ADDR
+      value: 0.0.0.0:8080
+    - name: HBY_CONTROL_ROOT
+      value: /home/container
+
+service:
+  extraPorts:
+    - name: control
+      port: 8080
+      targetPort: control
+      protocol: TCP
+```
+
 ## Secret
 
 For a private Modrinth project, create a Secret before installing:
@@ -59,7 +85,9 @@ externalSecrets:
           property: MODRINTH_TOKEN
 ```
 
-Use `externalSecrets.items` to render more than one `ExternalSecret`.
+Rendered ExternalSecrets are automatically added to the Minecraft container as `envFrom.secretRef` entries. Each key in the ExternalSecret target Secret becomes an environment variable in the runtime image. The target Secret must be in the same namespace as the Minecraft pod because Kubernetes does not allow cross-namespace Secret references from a container.
+
+Use `externalSecrets.items` to render and inject more than one `ExternalSecret`.
 
 ## Gateway API
 
@@ -121,7 +149,7 @@ minecraft:
 
 image:
   repository: hard-boiled-yolks
-  tag: java_21
+  tag: java_25
 
 installerImage:
   repository: hard-boiled-yolks
@@ -155,4 +183,4 @@ The init container records the installed pack in `.modrinth_mrpack_state`. Set `
 
 ## Installer Image
 
-The default installer image is `hard-boiled-yolks:installer_modrinth`, built from the Wolfi/apko config at `installers/modrinth/apko.yaml`.
+The default installer image is `hard-boiled-yolks:installer_modrinth`, built from the Wolfi/apko config at `installers/wolfi/apko.yaml`.

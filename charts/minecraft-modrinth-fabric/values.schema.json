@@ -16,6 +16,22 @@
           "type": "string",
           "minLength": 1
         },
+        "startup": {
+          "type": "string",
+          "minLength": 1
+        },
+        "command": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "commandArgs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "javaOpts": {
           "type": "string"
         },
@@ -26,6 +42,18 @@
           "type": "string",
           "minLength": 1,
           "pattern": "^/"
+        },
+        "extraPorts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/containerPort"
+          }
+        },
+        "extraEnv": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
         }
       }
     },
@@ -117,6 +145,15 @@
           "type": "integer",
           "minimum": 1,
           "maximum": 65535
+        },
+        "extraPorts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/servicePort"
+          }
+        },
+        "annotations": {
+          "type": "object"
         }
       }
     },
@@ -276,6 +313,55 @@
               }
             }
           }
+        }
+      }
+    },
+    "containerPort": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "containerPort": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "protocol": {
+          "type": "string"
+        }
+      }
+    },
+    "servicePort": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "targetPort": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "protocol": {
+          "type": "string"
+        },
+        "appProtocol": {
+          "type": "string"
         }
       }
     }

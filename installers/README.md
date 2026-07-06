@@ -4,12 +4,12 @@ Installer images contain the small toolsets used by chart init containers and eg
 
 ## Modrinth Installer
 
-`installers/modrinth/apko.yaml` builds a Wolfi image with the tools required by the Modrinth `.mrpack` installer script: `curl`, `jq`, `unzip`, BusyBox utilities, and CA certificates.
+`installers/wolfi/apko.yaml` builds a Wolfi image with the tools required by the Modrinth `.mrpack` installer script: `curl`, `jq`, `unzip`, BusyBox utilities, and CA certificates.
 
 Build from the repository root:
 
 ```sh
-apko build installers/modrinth/apko.yaml hard-boiled-yolks:installer_modrinth installer-modrinth.tar
+apko build installers/wolfi/apko.yaml hard-boiled-yolks:installer_modrinth installer-modrinth.tar
 ```
 
 Load locally:
@@ -17,4 +17,3 @@ Load locally:
 ```sh
 docker load < installer-modrinth.tar
 ```
-

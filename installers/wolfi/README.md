@@ -13,7 +13,7 @@ It includes:
 Build from the repository root:
 
 ```sh
-apko build installers/modrinth/apko.yaml hard-boiled-yolks:installer_modrinth installer-modrinth.tar
+apko build installers/wolfi/apko.yaml hard-boiled-yolks:installer_modrinth installer-modrinth.tar
 ```
 
 Load locally:
@@ -21,4 +21,3 @@ Load locally:
 ```sh
 docker load < installer-modrinth.tar
 ```
-

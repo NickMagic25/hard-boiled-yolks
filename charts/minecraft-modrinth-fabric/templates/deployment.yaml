@@ -89,12 +89,17 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           workingDir: {{ .Values.minecraft.dataDir | quote }}
+          {{- with .Values.minecraft.command }}
           command:
-            - /bin/sh
-            - -c
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.minecraft.commandArgs }}
           args:
-            - exec java ${JAVA_OPTS} -jar "${SERVER_JARFILE}" ${MINECRAFT_ARGS}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           env:
+            - name: STARTUP
+              value: {{ .Values.minecraft.startup | quote }}
             - name: JAVA_OPTS
               value: {{ .Values.minecraft.javaOpts | quote }}
             - name: SERVER_JARFILE
@@ -104,10 +109,26 @@ spec:
             {{- with .Values.minecraft.extraEnv }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
+          {{- if .Values.externalSecrets.enabled }}
+          {{- $externalSecretItems := .Values.externalSecrets.items }}
+          {{- if not $externalSecretItems }}
+          {{- $externalSecretItems = list (dict "metadata" .Values.externalSecrets.metadata "spec" .Values.externalSecrets.spec) }}
+          {{- end }}
+          envFrom:
+            {{- range $index, $externalSecret := $externalSecretItems }}
+            {{- $metadata := default dict $externalSecret.metadata }}
+            {{- $spec := default dict $externalSecret.spec }}
+            - secretRef:
+                name: {{ include "minecraft-modrinth-fabric.externalSecretTargetName" (dict "root" $ "metadata" $metadata "spec" $spec) }}
+            {{- end }}
+          {{- end }}
           ports:
             - name: minecraft
               containerPort: 25565
               protocol: TCP
+            {{- with .Values.minecraft.extraPorts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           {{- if .Values.probes.enabled }}
           readinessProbe:
             tcpSocket:
@@ -149,4 +170,3 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-

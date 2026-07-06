@@ -99,7 +99,7 @@ SteamCMD image with Valve's Steam console client, rcon-cli, and 32-bit runtime l
 
 ### Installers
 
-* [`installer_modrinth`](installers/modrinth) — `hard-boiled-yolks:installer_modrinth`
+* [`installer_modrinth`](installers/wolfi) — `hard-boiled-yolks:installer_modrinth`
 
 Wolfi-based installer image with `curl`, `jq`, `unzip`, CA certificates, and BusyBox utilities for installing Modrinth `.mrpack` files in init containers. See [`installers/README.md`](installers/README.md) for build instructions.
 

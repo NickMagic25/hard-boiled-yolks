@@ -69,3 +69,17 @@ Create the name of the service account to use.
 {{- default (printf "%s-modrinth-token" (include "minecraft-modrinth-fabric.fullname" .)) .Values.modrinth.auth.existingSecret | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
+{{- define "minecraft-modrinth-fabric.externalSecretName" -}}
+{{- $root := .root -}}
+{{- $metadata := default dict .metadata -}}
+{{- default (printf "%s-secret" (include "minecraft-modrinth-fabric.fullname" $root)) $metadata.name -}}
+{{- end -}}
+
+{{- define "minecraft-modrinth-fabric.externalSecretTargetName" -}}
+{{- $root := .root -}}
+{{- $metadata := default dict .metadata -}}
+{{- $spec := default dict .spec -}}
+{{- $target := default dict $spec.target -}}
+{{- $name := include "minecraft-modrinth-fabric.externalSecretName" (dict "root" $root "metadata" $metadata) -}}
+{{- default $name $target.name -}}
+{{- end -}}

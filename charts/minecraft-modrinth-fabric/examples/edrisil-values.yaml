@@ -1,14 +1,30 @@
 minecraft:
   eula: true
   javaOpts: "-Xms128M -Xmx8192M"
+  extraPorts:
+    - name: control
+      containerPort: 8080
+      protocol: TCP
+  extraEnv:
+    - name: HBY_CONTROL_ADDR
+      value: 0.0.0.0:8080
+    - name: HBY_CONTROL_ROOT
+      value: /home/container
 
 image:
-  repository: harbor.edrisil.net/hard-boiled-yolks/java_21
+  repository: harbor.edrisil.net/hard-boiled-yolks/java_25
   tag: latest
 
 installerImage:
   repository: harbor.edrisil.net/hard-boiled-yolks/installer_modrinth
   tag: latest
+
+service:
+  extraPorts:
+    - name: control
+      port: 8080
+      targetPort: control
+      protocol: TCP
 
 modrinth:
   projectId: VJ4jg3DP
@@ -58,3 +74,71 @@ gatewayIngress:
             sectionName: minecraft
         rules:
           - {}
+    - kind: HTTPRoute
+      name: minecraft-control
+      hostnames:
+        - minecraft-control.edrisil.net
+      port: 8080
+      spec:
+        parentRefs:
+          - name: internal-apps-gateway
+            namespace: gateway-system
+            sectionName: https
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+    - kind: HTTPRoute
+      name: minecraft-control-redirect
+      hostnames:
+        - minecraft-control.edrisil.net
+      spec:
+        parentRefs:
+          - name: internal-apps-gateway
+            namespace: gateway-system
+            sectionName: http
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+            filters:
+              - type: RequestRedirect
+                requestRedirect:
+                  scheme: https
+                  statusCode: 301
+    - kind: HTTPRoute
+      name: minecraft-control-tailscale
+      hostnames:
+        - minecraft-control.edrisil.net
+      port: 8080
+      spec:
+        parentRefs:
+          - name: tailscale-admin-gateway
+            namespace: tailscale
+            sectionName: https
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+    - kind: HTTPRoute
+      name: minecraft-control-tailscale-redirect
+      hostnames:
+        - minecraft-control.edrisil.net
+      spec:
+        parentRefs:
+          - name: tailscale-admin-gateway
+            namespace: tailscale
+            sectionName: http
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+            filters:
+              - type: RequestRedirect
+                requestRedirect:
+                  scheme: https
+                  statusCode: 301
