@@ -132,11 +132,11 @@ spec:
           {{- if .Values.probes.enabled }}
           readinessProbe:
             tcpSocket:
-              port: minecraft
+              port: {{ .Values.probes.port }}
             {{- toYaml .Values.probes.readiness | nindent 12 }}
           livenessProbe:
             tcpSocket:
-              port: minecraft
+              port: {{ .Values.probes.port }}
             {{- toYaml .Values.probes.liveness | nindent 12 }}
           {{- end }}
           securityContext:

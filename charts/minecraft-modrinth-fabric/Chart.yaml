@@ -2,7 +2,7 @@ apiVersion: v2
 name: minecraft-modrinth-fabric
 description: Deploy a Fabric Minecraft server bootstrapped from a Modrinth .mrpack.
 type: application
-version: 0.1.3
+version: 0.1.4
 appVersion: fabric
 keywords:
   - minecraft

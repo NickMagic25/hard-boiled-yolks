@@ -101,8 +101,11 @@ persistence:
 
 probes:
   enabled: true
+  # Probe hby-control by default instead of the Minecraft server socket.
+  # Set to minecraft to restore the old 25565 TCP probe.
+  port: 8080
   readiness:
-    initialDelaySeconds: 60
+    initialDelaySeconds: 5
     periodSeconds: 10
     timeoutSeconds: 3
     failureThreshold: 12

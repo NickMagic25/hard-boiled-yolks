@@ -17,6 +17,8 @@ The installer:
 
 The default runtime image is a Hard Boiled Yolks Java image. The chart sets `STARTUP` and lets the image entrypoint run so `hby-control` can supervise the server when the control package is installed in the image. Set `minecraft.command` and `minecraft.commandArgs` only when using an image that needs an explicit Kubernetes command override.
 
+The default readiness and liveness probes check the `hby-control` TCP listener on port 8080 instead of the Minecraft server socket. If you use an image without `hby-control`, set `probes.port: minecraft` to restore the Minecraft TCP check, or disable probes.
+
 ## Controller Port
 
 Hard Boiled Yolks Java images include `hby-control`, which listens on port 8080 by default. Expose it with an additional container port and Service port:
@@ -39,6 +41,9 @@ service:
       port: 8080
       targetPort: control
       protocol: TCP
+
+probes:
+  port: 8080
 ```
 
 ## Secret

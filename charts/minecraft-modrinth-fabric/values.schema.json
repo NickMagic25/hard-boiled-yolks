@@ -180,6 +180,19 @@
       "properties": {
         "enabled": {
           "type": "boolean"
+        },
+        "port": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535
+            },
+            {
+              "type": "string",
+              "minLength": 1
+            }
+          ]
         }
       }
     },
