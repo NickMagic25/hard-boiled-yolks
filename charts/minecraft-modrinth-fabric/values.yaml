@@ -58,6 +58,8 @@ minecraft:
 
 modrinth:
   apiBase: https://api.modrinth.com/v2
+  # Set projectId with versionNumber or versionId, then leave pack.url and
+  # pack.sha512 empty to resolve the primary .mrpack from Modrinth metadata.
   projectId: ""
   versionId: ""
   versionNumber: ""
@@ -75,9 +77,8 @@ modrinth:
     createSecret: false
     token: ""
 
-  # If url and sha512 are set, the installer skips the version API lookup and uses
-  # this pinned primary .mrpack. If unset, it fetches project version JSON and
-  # selects versionId, versionNumber, or the first returned version.
+  # If url and sha512 are set, the installer skips Modrinth version lookup and
+  # uses this pinned primary .mrpack.
   pack:
     url: ""
     filename: modrinth.mrpack

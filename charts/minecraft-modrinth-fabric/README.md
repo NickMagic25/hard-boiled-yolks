@@ -157,13 +157,8 @@ installerImage:
 
 modrinth:
   projectId: VJ4jg3DP
-  versionId: K5CPsQs7
   versionNumber: 1.0.0
   fabricInstallerVersion: "1.0.3"
-  pack:
-    filename: Essential Sodium and More 1.0.0.mrpack
-    url: https://cdn.modrinth.com/data/VJ4jg3DP/versions/K5CPsQs7/Essential%20Sodium%20and%20More%201.0.0.mrpack
-    sha512: 44133dd49603de92ee40030644008de9c57945eef190df25e5af8c35066e9aafe6a8d2b55596f907ae1e025b1ac81ac8b7be4e299460483344c199332b7d40fe
   auth:
     existingSecret: minecraft-modrinth-token
 ```
@@ -177,7 +172,7 @@ helm upgrade --install minecraft ./charts/minecraft-modrinth-fabric \
   -f values.minecraft.yaml
 ```
 
-If `modrinth.pack.url` and `modrinth.pack.sha512` are empty, the installer fetches project version JSON from `modrinth.apiBase` and selects `versionId`, `versionNumber`, or the first returned version.
+To avoid updating pack URLs and SHA512 values manually, set `modrinth.projectId` and `modrinth.versionNumber`, then leave `modrinth.pack.url` and `modrinth.pack.sha512` empty. The installer fetches project version JSON from `modrinth.apiBase`, selects `versionId`, `versionNumber`, or the first returned version, then uses the primary `.mrpack` URL and SHA512 from Modrinth metadata.
 
 The init container records the installed pack in `.modrinth_mrpack_state`. Set `modrinth.installPolicy=Always` to reinstall on every pod start.
 
