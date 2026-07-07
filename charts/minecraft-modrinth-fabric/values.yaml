@@ -53,6 +53,13 @@ minecraft:
   javaOpts: "-Xms128M -Xmx4G"
   args: nogui
   dataDir: /home/container
+  # Additional jars to download into dataDir after the Modrinth pack is installed.
+  # targetPath is relative to dataDir and must end in .jar.
+  # extraJars:
+  #   - url: https://repo1.maven.org/maven2/org/postgresql/postgresql/<version>/postgresql-<version>.jar
+  #     sha512: ""
+  #     targetPath: libraries/postgresql.jar
+  extraJars: []
   extraPorts: []
   extraEnv:
     - name: HBY_CONTROL_ADDR

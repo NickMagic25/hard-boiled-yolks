@@ -43,6 +43,12 @@
           "minLength": 1,
           "pattern": "^/"
         },
+        "extraJars": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/minecraftExtraJar"
+          }
+        },
         "extraPorts": {
           "type": "array",
           "items": {
@@ -254,6 +260,30 @@
         },
         "spec": {
           "type": "object"
+        }
+      }
+    },
+    "minecraftExtraJar": {
+      "type": "object",
+      "required": [
+        "url",
+        "sha512",
+        "targetPath"
+      ],
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "minLength": 1
+        },
+        "sha512": {
+          "type": "string",
+          "pattern": "^[A-Fa-f0-9]{128}$"
+        },
+        "targetPath": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^/].*\\.jar$"
         }
       }
     },

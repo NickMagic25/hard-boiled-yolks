@@ -13,11 +13,26 @@ The installer:
 - writes files using their pack paths, such as `mods/...` and `resourcepacks/...`
 - normalizes and copies `overrides/` into the server root without preserving archive metadata
 - downloads the Fabric server jar using the Minecraft and loader versions from `modrinth.index.json`
+- downloads configured additional jars into server-root-relative paths and verifies their SHA512 hashes
 - starts Minecraft with the installed Fabric server jar
 
 The default runtime image is a Hard Boiled Yolks Java image. The chart sets `STARTUP` and lets the image entrypoint run so `hby-control` can supervise the server when the control package is installed in the image. Set `minecraft.command` and `minecraft.commandArgs` only when using an image that needs an explicit Kubernetes command override.
 
 The default readiness and liveness probes check the `hby-control` TCP listener on port 8080 instead of the Minecraft server socket. If you use an image without `hby-control`, set `probes.port: minecraft` to restore the Minecraft TCP check, or disable probes.
+
+## Additional Jars
+
+Use `minecraft.extraJars` to download jar files that are not included in the Modrinth pack, such as a JDBC driver required by a mod. Each `targetPath` is relative to `minecraft.dataDir`, must end in `.jar`, and is installed only when the existing file does not match the configured SHA512.
+
+```yaml
+minecraft:
+  extraJars:
+    - url: https://repo1.maven.org/maven2/org/postgresql/postgresql/<version>/postgresql-<version>.jar
+      sha512: "<128-character SHA512 hash>"
+      targetPath: libraries/postgresql.jar
+```
+
+This only places the jar on disk. If a mod needs the jar on the JVM classpath, adjust `minecraft.startup` for that mod's launch requirements.
 
 ## Controller Port
 

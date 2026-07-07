@@ -29,6 +29,7 @@ pack_sha512="${MODRINTH_PACK_SHA512:-}"
 fabric_installer_version="${FABRIC_INSTALLER_VERSION:-1.0.3}"
 server_jarfile="${SERVER_JARFILE:-server.jar}"
 minecraft_eula="${MINECRAFT_EULA:-false}"
+extra_jars_json="${MINECRAFT_EXTRA_JARS_JSON:-[]}"
 
 case "$install_policy" in
   IfChanged | Always)
@@ -47,15 +48,6 @@ fi
 if [ "$minecraft_eula" = "true" ]; then
   mkdir -p "$server_dir"
   printf 'eula=true\n' > "${server_dir}/eula.txt"
-fi
-
-if [ "$install_policy" = "IfChanged" ] \
-  && [ -n "$pack_sha512" ] \
-  && [ -f "$state_file" ] \
-  && [ -f "${server_dir}/${server_jarfile}" ] \
-  && grep -q "^pack_sha512=${pack_sha512}$" "$state_file"; then
-  echo "Modrinth pack ${pack_sha512} is already installed."
-  exit 0
 fi
 
 tmpdir="$(mktemp -d "${TMPDIR:-/tmp}/modrinth-pack.XXXXXX")"
@@ -135,11 +127,95 @@ verify_sha512() {
 validate_pack_path() {
   case "$1" in
     "" | /* | ./* | ../* | *"/../"* | *"/.." | *"/./"* | *"/.")
-      echo "Error: unsafe path in Modrinth pack index: $1" >&2
+      echo "Error: unsafe server path: $1" >&2
       exit 1
       ;;
   esac
 }
+
+validate_extra_jars_config() {
+  if ! printf '%s' "$extra_jars_json" | jq -e 'type == "array"' >/dev/null; then
+    echo "Error: MINECRAFT_EXTRA_JARS_JSON must be a JSON array." >&2
+    exit 1
+  fi
+
+  if ! printf '%s' "$extra_jars_json" | jq -e '
+    def nonempty_string($key):
+      has($key) and (.[$key] | type == "string" and length > 0);
+    all(.[]; nonempty_string("url") and nonempty_string("targetPath") and (.sha512 | type == "string" and test("^[A-Fa-f0-9]{128}$")))
+  ' >/dev/null; then
+    echo "Error: every extra jar must set url, targetPath, and a 128-character SHA512 hash." >&2
+    exit 1
+  fi
+
+  printf '%s' "$extra_jars_json" | jq -r '.[].targetPath' > "${tmpdir}/extra-jar-paths"
+  while IFS= read -r target_path; do
+    validate_pack_path "$target_path"
+    case "$target_path" in
+      *.jar)
+        ;;
+      *)
+        echo "Error: extra jar targetPath must end in .jar: $target_path" >&2
+        exit 1
+        ;;
+    esac
+  done < "${tmpdir}/extra-jar-paths"
+}
+
+install_extra_jars() {
+  extra_count="$(printf '%s' "$extra_jars_json" | jq -r 'length')"
+  if [ "$extra_count" -eq 0 ]; then
+    return
+  fi
+
+  mkdir -p "$server_dir"
+  printf '%s' "$extra_jars_json" | jq -cr '.[]' > "${tmpdir}/extra-jars.jsonl"
+  echo "Installing ${extra_count} additional Minecraft jar(s)."
+
+  while IFS= read -r jar_json; do
+    jar_url="$(printf '%s' "$jar_json" | jq -r '.url')"
+    jar_sha512="$(printf '%s' "$jar_json" | jq -r '.sha512')"
+    target_path="$(printf '%s' "$jar_json" | jq -r '.targetPath')"
+    target_file="${server_dir}/${target_path}"
+    target_dir="$(dirname "$target_file")"
+    downloaded_file="${tmpdir}/extra-jar"
+
+    validate_pack_path "$target_path"
+    case "$target_path" in
+      *.jar)
+        ;;
+      *)
+        echo "Error: extra jar targetPath must end in .jar: $target_path" >&2
+        exit 1
+        ;;
+    esac
+
+    if [ -f "$target_file" ] && sha512_matches "$target_file" "$jar_sha512"; then
+      echo "Already installed: $target_path"
+      continue
+    fi
+
+    echo "Downloading additional jar $target_path"
+    rm -f "$downloaded_file"
+    download_url "$jar_url" "$downloaded_file"
+    verify_sha512 "$downloaded_file" "$jar_sha512"
+
+    mkdir -p "$target_dir"
+    mv "$downloaded_file" "$target_file"
+  done < "${tmpdir}/extra-jars.jsonl"
+}
+
+validate_extra_jars_config
+
+if [ "$install_policy" = "IfChanged" ] \
+  && [ -n "$pack_sha512" ] \
+  && [ -f "$state_file" ] \
+  && [ -f "${server_dir}/${server_jarfile}" ] \
+  && grep -q "^pack_sha512=${pack_sha512}$" "$state_file"; then
+  install_extra_jars
+  echo "Modrinth pack ${pack_sha512} is already installed."
+  exit 0
+fi
 
 if [ -z "$pack_url" ] || [ -z "$pack_sha512" ]; then
   if [ -z "$project_id" ]; then
@@ -273,6 +349,8 @@ if ! tr -d '\r' < "$manifest_file" | grep -q '^Main-Class: net.fabricmc.installe
   echo "Error: downloaded Fabric server jar does not advertise the expected ServerLauncher main class." >&2
   exit 1
 fi
+
+install_extra_jars
 
 {
   echo "project_id=${project_id}"

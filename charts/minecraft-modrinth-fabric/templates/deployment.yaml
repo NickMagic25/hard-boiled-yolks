@@ -45,6 +45,8 @@ spec:
               value: {{ .Values.minecraft.serverJarFile | quote }}
             - name: MINECRAFT_EULA
               value: {{ ternary "true" "false" .Values.minecraft.eula | quote }}
+            - name: MINECRAFT_EXTRA_JARS_JSON
+              value: {{ default (list) .Values.minecraft.extraJars | toJson | quote }}
             - name: MODRINTH_AUTH_ENABLED
               value: {{ ternary "true" "false" .Values.modrinth.auth.enabled | quote }}
             - name: MODRINTH_AUTH_SCHEME
