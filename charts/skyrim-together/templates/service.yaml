@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "skyrim-together.fullname" . }}
+  labels:
+    {{- include "skyrim-together.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: skyrim
+      port: {{ .Values.service.port }}
+      targetPort: skyrim
+      protocol: {{ .Values.skyrim.protocol }}
+    {{- with .Values.service.extraPorts }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  selector:
+    {{- include "skyrim-together.selectorLabels" . | nindent 4 }}

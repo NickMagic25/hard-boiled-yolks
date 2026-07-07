@@ -1,0 +1,5 @@
+The Skyrim Together service is available in-cluster at:
+
+  {{ include "skyrim-together.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }} ({{ .Values.skyrim.protocol }})
+
+The Hard Boiled Yolks control UI is exposed on any configured control Service port.

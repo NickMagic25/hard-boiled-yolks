@@ -1,0 +1,14 @@
+apiVersion: v2
+name: skyrim-together
+description: Deploy a Skyrim Together Reborn dedicated server supervised by Hard Boiled Yolks control.
+type: application
+version: 0.1.0
+appVersion: "1.8.0"
+keywords:
+  - skyrim
+  - skyrim-together
+  - skyrim-together-reborn
+  - hard-boiled-yolks
+home: https://github.com/NickMagic25/hard-boiled-yolks
+maintainers:
+  - name: Nick Majkic

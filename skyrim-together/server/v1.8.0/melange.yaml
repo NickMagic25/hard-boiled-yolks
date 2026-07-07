@@ -5,6 +5,7 @@ package:
   description: Skyrim Together Reborn dedicated server
   target-architecture:
     - x86_64
+    - aarch64
   copyright:
     - license: GPL-3.0-or-later
 

@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "skyrim-together.fullname" . }}
+  labels:
+    {{- include "skyrim-together.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "skyrim-together.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "skyrim-together.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "skyrim-together.serviceAccountName" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: skyrim-together
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          workingDir: {{ .Values.skyrim.dataDir | quote }}
+          {{- with .Values.skyrim.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.skyrim.commandArgs }}
+          args:
+            {{- toYaml .Values.skyrim.commandArgs | nindent 12 }}
+          {{- else }}
+          args:
+            - run
+            - "--"
+            - {{ .Values.skyrim.serverExecutable | quote }}
+            {{- range .Values.skyrim.serverArgs }}
+            - {{ . | quote }}
+            {{- end }}
+          {{- end }}
+          {{- with .Values.skyrim.extraEnv }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.externalSecrets.enabled }}
+          {{- $externalSecretItems := .Values.externalSecrets.items }}
+          {{- if not $externalSecretItems }}
+          {{- $externalSecretItems = list (dict "metadata" .Values.externalSecrets.metadata "spec" .Values.externalSecrets.spec) }}
+          {{- end }}
+          envFrom:
+            {{- range $index, $externalSecret := $externalSecretItems }}
+            {{- $metadata := default dict $externalSecret.metadata }}
+            {{- $spec := default dict $externalSecret.spec }}
+            - secretRef:
+                name: {{ include "skyrim-together.externalSecretTargetName" (dict "root" $ "metadata" $metadata "spec" $spec) }}
+            {{- end }}
+          {{- end }}
+          ports:
+            - name: skyrim
+              containerPort: {{ .Values.skyrim.port }}
+              protocol: {{ .Values.skyrim.protocol }}
+            {{- with .Values.skyrim.extraPorts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- if .Values.probes.enabled }}
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.probes.port }}
+            {{- toYaml .Values.probes.readiness | nindent 12 }}
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.probes.port }}
+            {{- toYaml .Values.probes.liveness | nindent 12 }}
+          {{- end }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.skyrim.dataDir | quote }}
+      volumes:
+        - name: data
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "skyrim-together.pvcName" . }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

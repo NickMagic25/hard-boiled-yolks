@@ -65,3 +65,4 @@ cmd: run -- /st-server/SkyrimTogetherServer
 
 archs:
   - x86_64
+  - aarch64
