@@ -1,0 +1,96 @@
+replicaCount: 1
+
+image:
+  repository: hard-boiled-yolks
+  tag: latest
+  pullPolicy: IfNotPresent
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: false
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+podSecurityContext:
+  fsGroup: 1000
+  runAsGroup: 1000
+  runAsNonRoot: true
+  runAsUser: 1000
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: [ALL]
+
+container:
+  command: []
+  args: []
+  env: []
+  envFrom: []
+  extraVolumeMounts: []
+workload:
+  extraInitContainers: []
+
+# Each entry renders both a container port and a Service port.
+ports: []
+# - name: game
+#   containerPort: 25565
+#   servicePort: 25565
+#   protocol: TCP
+
+controller:
+  enabled: true
+  address: 0.0.0.0:8080
+  root: /home/container
+  secureCookies: true
+  service:
+    enabled: false
+    port: 8080
+  env: []
+
+service:
+  type: ClusterIP
+  annotations: {}
+
+persistence:
+  enabled: true
+  existingClaim: ""
+  mountPath: /home/container
+  storageClassName: ""
+  accessModes: [ReadWriteOnce]
+  size: 10Gi
+  annotations: {}
+
+probes:
+  enabled: true
+  port: ""
+  readiness:
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 12
+  liveness:
+    initialDelaySeconds: 180
+    periodSeconds: 30
+    timeoutSeconds: 3
+    failureThreshold: 6
+
+externalSecrets:
+  enabled: false
+  items: []
+
+gatewayRoutes:
+  enabled: false
+  items: []
+
+extraVolumes: []
+nodeSelector: {}
+tolerations: []
+affinity: {}
+resources: {}

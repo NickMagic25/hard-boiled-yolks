@@ -1,0 +1,32 @@
+package:
+  name: proton-ge-hard-boiled-yolks
+  version: 11.1
+  epoch: 2
+  description: Pinned GE-Proton runtime for Hard Boiled Yolks SteamCMD images
+  target-architecture: [x86_64]
+  options:
+    no-depends: true
+  copyright:
+    - license: BSD-3-Clause AND LGPL-2.1-or-later AND MIT
+
+environment:
+  contents:
+    repositories: [https://packages.wolfi.dev/os]
+    keyring: [https://packages.wolfi.dev/os/wolfi-signing.rsa.pub]
+    packages: [busybox, ca-certificates-bundle, wget]
+
+pipeline:
+  - runs: |
+      wget -q https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-1/GE-Proton11-1.tar.gz -O /tmp/proton-ge.tar.gz
+      echo 'd5792f4ac81d3832f5fe40467090c67d561b780c6a4236e76f8b59cb1d4ca25c82df91018e79d156bb267a67224a41f0d621a1e6cbbeec79040cc60275dc9e5a  /tmp/proton-ge.tar.gz' | sha512sum -c -
+      mkdir -p "${{targets.destdir}}/usr/lib/proton-ge"
+      tar -xzf /tmp/proton-ge.tar.gz -C "${{targets.destdir}}/usr/lib/proton-ge" --strip-components=1 --no-same-owner
+      # The image runs as the unprivileged container user. Preserve that
+      # ownership in the APK instead of relying on root-owned archive modes.
+      # Keep the packaged runtime immutable even to that user; Proton writes
+      # prefixes beneath STEAM_COMPAT_DATA_PATH, not into its installation.
+      chown -R 1000:1000 "${{targets.destdir}}/usr/lib/proton-ge"
+      chmod -R a-w,u+rX,go+rX "${{targets.destdir}}/usr/lib/proton-ge"
+      mkdir -p "${{targets.destdir}}/usr/bin"
+      ln -s /usr/lib/proton-ge/proton "${{targets.destdir}}/usr/bin/proton"
+      chown -h 1000:1000 "${{targets.destdir}}/usr/bin/proton"

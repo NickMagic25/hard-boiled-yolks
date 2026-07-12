@@ -1,0 +1,8 @@
+{{- $ctx := dict "root" . "hby" .Values.hby -}}
+{{ include "hby.serviceAccount" $ctx }}
+---
+{{ include "hby.pvc" $ctx }}
+---
+{{ include "hby.service" $ctx }}
+{{ include "hby.externalSecrets" $ctx }}
+{{ include "hby.gatewayRoutes" $ctx }}

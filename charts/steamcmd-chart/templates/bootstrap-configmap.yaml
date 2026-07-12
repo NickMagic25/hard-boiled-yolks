@@ -1,0 +1,23 @@
+{{- if .Values.steamcmd.bootstrap.enabled }}
+{{- $ctx := dict "root" . "hby" .Values.hby -}}
+{{- $checksum := sha256sum .Values.steamcmd.bootstrap.script -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "hby.fullname" $ctx }}-bootstrap
+  labels:
+    {{- include "hby.labels" $ctx | nindent 4 }}
+data:
+  bootstrap.sh: |
+    #!/bin/bash
+    set -euo pipefail
+    state=/home/container/.hby_bootstrap_state
+    desired={{ $checksum | quote }}
+    if [[ {{ .Values.steamcmd.bootstrap.policy | quote }} == "IfChanged" && -f "$state" && "$(cat "$state")" == "$desired" ]]; then
+      echo "Bootstrap is already current."
+      exit 0
+    fi
+    cd /home/container
+{{ .Values.steamcmd.bootstrap.script | indent 4 }}
+    printf '%s' "$desired" > "$state"
+{{- end }}

@@ -1,0 +1,38 @@
+hby:
+  controller:
+    service: {enabled: true, port: 8080}
+  ports:
+    - {name: game-tcp, containerPort: 27015, servicePort: 27015, protocol: TCP}
+    - {name: game-udp, containerPort: 27016, servicePort: 27016, protocol: UDP}
+  container:
+    envFrom:
+      - secretRef: {name: game-runtime}
+  externalSecrets:
+    enabled: true
+    items:
+      - name: game-runtime
+        spec:
+          secretStoreRef: {kind: ClusterSecretStore, name: openbao}
+          target: {name: game-runtime, creationPolicy: Owner}
+          data:
+            - secretKey: SERVER_PASSWORD
+              remoteRef: {key: games/test, property: password}
+  gatewayRoutes:
+    enabled: true
+    items:
+      - kind: HTTPRoute
+        name: control
+        port: 8080
+        hostnames: [control.example.com]
+        parentRefs: [{name: web-gateway, sectionName: https}]
+      - kind: TCPRoute
+        name: game-tcp
+        port: 27015
+        parentRefs: [{name: games-gateway, sectionName: tcp-game}]
+      - kind: UDPRoute
+        name: game-udp
+        port: 27016
+        parentRefs: [{name: games-gateway, sectionName: udp-game}]
+steamcmd:
+  appId: "90"
+  startup: ./server

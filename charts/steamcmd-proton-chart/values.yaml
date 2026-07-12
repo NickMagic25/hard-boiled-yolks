@@ -1,0 +1,29 @@
+hby:
+  image:
+    repository: hard-boiled-yolks
+    tag: steamcmd_proton
+    pullPolicy: IfNotPresent
+  persistence:
+    mountPath: /home/container
+    size: 30Gi
+
+steamcmd:
+  appId: ""
+  startup: ""
+  autoUpdate: true
+  validate: false
+  betaId: ""
+  betaPassword: ""
+  installFlags: ""
+  updateSteamworks: false
+  credentials:
+    user: anonymous
+    envFrom: []
+  installEnv: []
+  bootstrap:
+    enabled: false
+    policy: IfChanged
+    image: ""
+    script: ""
+    env: []
+    envFrom: []

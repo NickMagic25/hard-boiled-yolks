@@ -1,9 +1,9 @@
 apiVersion: v2
-name: minecraft-modrinth-fabric
-description: Deploy a Fabric Minecraft server bootstrapped from a Modrinth pack.
+name: steamcmd-proton-chart
+description: Deploy a Windows SteamCMD game server under Proton and Hard Boiled Yolks control.
 type: application
 version: 1.0.0
-appVersion: fabric
+appVersion: steamcmd_proton
 dependencies:
   - name: hard-boiled-yolks
     alias: hby

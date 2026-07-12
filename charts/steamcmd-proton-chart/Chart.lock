@@ -1,0 +1,6 @@
+dependencies:
+- name: hard-boiled-yolks
+  repository: file://../hard-boiled-yolks
+  version: 1.0.0
+digest: sha256:8a11dfd80305478c8e57bc1854a2d90a2fcefe830220c494355c603abd724eb3
+generated: "2026-07-12T16:06:39.510793-04:00"

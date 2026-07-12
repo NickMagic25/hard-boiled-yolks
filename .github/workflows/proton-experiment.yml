@@ -1,0 +1,32 @@
+name: Proton Wolfi experiment
+on:
+  workflow_dispatch:
+  pull_request:
+    paths: ["steamcmd/proton/**", "steamcmd/entrypoint.sh", "control/**", "charts/steamcmd-proton-chart/**", ".github/workflows/proton-experiment.yml"]
+
+jobs:
+  experiment:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: chainguard-dev/actions/setup-melange@main
+      - uses: chainguard-dev/actions/setup-apko@main
+      - name: Build experimental image
+        working-directory: steamcmd
+        run: |
+          melange keygen
+          melange build ../control/melange.yaml --source-dir .. --signing-key melange.rsa --out-dir packages --arch x86_64
+          melange build runtime/melange.yaml --source-dir . --signing-key melange.rsa --out-dir packages --arch x86_64
+          melange build entrypoint/melange.yaml --source-dir . --signing-key melange.rsa --out-dir packages --arch x86_64
+          melange build proton/melange.yaml --source-dir . --signing-key melange.rsa --out-dir packages --arch x86_64
+          apko build proton/apko.yaml hard-boiled-yolks:steamcmd_proton proton.tar \
+            --keyring-append melange.rsa.pub --repository-append ./packages
+          docker load -i proton.tar
+      - name: Runtime gate
+        run: |
+          image=hard-boiled-yolks:steamcmd_proton-amd64
+          docker run --rm --platform linux/amd64 --entrypoint /bin/bash "$image" -lc \
+            'test "$(id -u)" = 1000 && test "$(stat -c %u:%g /usr/lib/proton-ge/proton)" = 1000:1000 && command -v steamcmd && proton --version'
+          docker run --rm --platform linux/amd64 -e SRCDS_APPID=90 --entrypoint /bin/bash "$image" -lc \
+            'export STEAM_COMPAT_CLIENT_INSTALL_PATH=/home/container/.steam/steam; export STEAM_COMPAT_DATA_PATH=/home/container/.steam/steam/steamapps/compatdata/90; mkdir -p "$STEAM_COMPAT_DATA_PATH" && proton run cmd /c exit 0'

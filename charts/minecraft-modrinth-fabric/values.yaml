@@ -1,186 +1,44 @@
-replicaCount: 1
-
-image:
-  repository: hard-boiled-yolks
-  tag: java_25
-  pullPolicy: IfNotPresent
+hby:
+  image:
+    repository: hard-boiled-yolks
+    tag: java_25
+    pullPolicy: IfNotPresent
+  ports:
+    - name: minecraft
+      containerPort: 25565
+      servicePort: 25565
+      protocol: TCP
+  persistence:
+    mountPath: /home/container
+    size: 10Gi
 
 installerImage:
   repository: hard-boiled-yolks
   tag: installer_modrinth
   pullPolicy: IfNotPresent
 
-imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
-
-serviceAccount:
-  create: true
-  automount: false
-  annotations: {}
-  name: ""
-
-podAnnotations: {}
-podLabels: {}
-
-podSecurityContext:
-  fsGroup: 1000
-  runAsGroup: 1000
-  runAsNonRoot: true
-  runAsUser: 1000
-  seccompProfile:
-    type: RuntimeDefault
-
-securityContext:
-  allowPrivilegeEscalation: false
-  capabilities:
-    drop:
-      - ALL
-
-installerSecurityContext:
-  allowPrivilegeEscalation: false
-  capabilities:
-    drop:
-      - ALL
-
 minecraft:
-  # Set to true only when you accept the Minecraft EULA.
   eula: false
   serverJarFile: server.jar
   startup: 'java {{JAVA_OPTS}} -jar {{SERVER_JARFILE}} {{MINECRAFT_ARGS}}'
-  command: []
-  commandArgs: []
-  javaOpts: "-Xms128M -Xmx4G"
+  javaOpts: -Xms128M -Xmx4G
   args: nogui
-  dataDir: /home/container
-  # Additional jars to download into dataDir after the Modrinth pack is installed.
-  # targetPath is relative to dataDir and must end in .jar.
-  # extraJars:
-  #   - url: https://repo1.maven.org/maven2/org/postgresql/postgresql/<version>/postgresql-<version>.jar
-  #     sha512: ""
-  #     targetPath: libraries/postgresql.jar
   extraJars: []
-  extraPorts: []
-  extraEnv:
-    - name: HBY_CONTROL_ADDR
-      value: 0.0.0.0:8080
-    - name: HBY_CONTROL_ROOT
-      value: /home/container
-    - name: HBY_CONTROL_SECURE_COOKIES
-      value: "true"
-    - name: HBY_CONTROL_OIDC_SCOPES
-      value: "openid profile email groups"
 
 modrinth:
   apiBase: https://api.modrinth.com/v2
-  # Set projectId with versionNumber or versionId, then leave pack.url and
-  # pack.sha512 empty to resolve the primary .mrpack from Modrinth metadata.
   projectId: ""
   versionId: ""
   versionNumber: ""
-  userAgent: minecraft-modrinth-fabric-chart/0.1
+  userAgent: minecraft-modrinth-fabric-chart/1.0
   installPolicy: IfChanged
   fabricInstallerVersion: "1.0.3"
-
   auth:
     enabled: true
-    # Modrinth personal access tokens currently work as a raw Authorization value.
-    # OAuth-style tokens can use bearer.
     scheme: raw
     existingSecret: ""
     secretKey: MODRINTH_TOKEN
-    createSecret: false
-    token: ""
-
-  # If url and sha512 are set, the installer skips Modrinth version lookup and
-  # uses this pinned primary .mrpack.
   pack:
     url: ""
     filename: modrinth.mrpack
     sha512: ""
-
-service:
-  type: ClusterIP
-  port: 25565
-  extraPorts: []
-  annotations: {}
-
-persistence:
-  enabled: true
-  existingClaim: ""
-  storageClassName: ""
-  accessModes:
-    - ReadWriteOnce
-  size: 10Gi
-  annotations: {}
-
-probes:
-  enabled: true
-  # Probe hby-control by default instead of the Minecraft server socket.
-  # Set to minecraft to restore the old 25565 TCP probe.
-  port: 8080
-  readiness:
-    initialDelaySeconds: 5
-    periodSeconds: 10
-    timeoutSeconds: 3
-    failureThreshold: 12
-  liveness:
-    initialDelaySeconds: 180
-    periodSeconds: 30
-    timeoutSeconds: 3
-    failureThreshold: 6
-
-resources: {}
-
-nodeSelector: {}
-tolerations: []
-affinity: {}
-
-externalSecrets:
-  enabled: false
-  # Every rendered ExternalSecret target Secret is added to the Minecraft
-  # container with envFrom, so each Secret key becomes an environment variable.
-  # Optional list form for rendering several ExternalSecret resources.
-  # If items is empty, the metadata/spec object below renders one ExternalSecret.
-  items: []
-  metadata:
-    name: ""
-    namespace: ""
-    annotations: {}
-    labels: {}
-  spec:
-    refreshInterval: 1h
-    secretStoreRef:
-      kind: ClusterSecretStore
-      name: ""
-    target:
-      name: ""
-      creationPolicy: "Owner"
-    data:
-      - secretKey:
-        remoteRef:
-          key: ""
-          property: ""
-
-gatewayIngress:
-  enabled: false
-  data:
-    - kind: ""
-      name: "" # metadata.name in gateway.networking.k8s.io/v1
-      namespace: ""
-      hostname: "" # spec.hostnames[] if kind=HTTPRoute, metadata.annotations.external-dns.alpha.kubernetes.io/hostname if externalDNS=true
-      hostnames: []
-      externalDNS:  false
-      port: ""
-      annotations: {}
-      labels: {}
-      spec:
-        parentRefs:
-          - name: ""
-            namespace: ""
-            sectionName: ""
-        rules:
-          - matches:
-            - path:
-                type: ""
-                value: ""

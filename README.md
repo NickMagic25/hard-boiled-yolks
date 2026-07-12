@@ -10,6 +10,7 @@ All images support `linux/amd64` and `linux/arm64` unless otherwise noted.
 
 * `java/` — Java runtime images (OpenJDK 8, 11, 17, 18, 19, 21, 25)
 * `steamcmd/` — SteamCMD image for game server hosting
+* `charts/` — Shared and application Helm charts for Kubernetes deployments
 * `games/` — game-specific images
 * `control/` — shared web UI and process supervisor package
 * `installers/` — images used by egg install scripts
@@ -94,8 +95,18 @@ Authentication is disabled unless password or OIDC environment variables are set
 > `x86_64` only
 
 * [`steamcmd`](steamcmd) — `hard-boiled-yolks:steamcmd`
+* [`steamcmd/proton`](steamcmd/proton) — `hard-boiled-yolks:steamcmd_proton` (experimental, `x86_64` only)
 
 SteamCMD image with Valve's Steam console client, rcon-cli, and 32-bit runtime libraries. Includes an entrypoint that handles auto-updating game servers on start via `SRCDS_APPID` and `STARTUP` environment variables. See [`steamcmd/README.md`](steamcmd/README.md) for build instructions and full environment variable reference.
+
+## Helm Charts
+
+- `charts/hard-boiled-yolks` — common library for controller, storage, Services, ExternalSecrets, and Gateway API routes
+- `charts/steamcmd-chart` — generic native Linux SteamCMD server with maintained game examples
+- `charts/steamcmd-proton-chart` — generic Windows SteamCMD/Proton server with an Enshrouded example
+- `charts/minecraft-modrinth-fabric` — Modrinth/Fabric server built on the shared library
+
+The Proton chart source is available for testing, but release packaging remains gated on the Wolfi image's Linux runtime checks.
 
 ### Installers
 

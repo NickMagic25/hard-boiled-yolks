@@ -1,0 +1,25 @@
+name: SteamCMD image
+on:
+  pull_request:
+    paths: ["steamcmd/**", "control/**", ".github/workflows/steamcmd.yml"]
+  push:
+    branches: [master]
+    paths: ["steamcmd/**", "control/**", ".github/workflows/steamcmd.yml"]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: steamcmd/tests/entrypoint_test.sh
+      - uses: chainguard-dev/actions/setup-melange@main
+      - uses: chainguard-dev/actions/setup-apko@main
+      - name: Build packages and image
+        working-directory: steamcmd
+        run: |
+          melange keygen
+          melange build ../control/melange.yaml --source-dir .. --signing-key melange.rsa --out-dir packages --arch x86_64
+          melange build runtime/melange.yaml --source-dir . --signing-key melange.rsa --out-dir packages --arch x86_64
+          melange build entrypoint/melange.yaml --source-dir . --signing-key melange.rsa --out-dir packages --arch x86_64
+          apko build apko.yaml hard-boiled-yolks:steamcmd steamcmd.tar \
+            --keyring-append melange.rsa.pub --repository-append ./packages
