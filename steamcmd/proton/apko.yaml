@@ -1,0 +1,52 @@
+contents:
+  keyring:
+    - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+  repositories:
+    - https://packages.wolfi.dev/os
+  packages:
+    - wolfi-base
+    - bash
+    - ca-certificates-bundle
+    - curl
+    - coreutils
+    - dbus
+    - fontconfig
+    - freetype
+    - glibc
+    - libgcc
+    - libstdc++
+    - libx11
+    - libxcb
+    - libxfixes
+    - libxrandr
+    - mesa
+    - pulseaudio
+    - python-3.13
+    - util-linux
+    - vulkan-loader
+    - wayland
+    - hard-boiled-yolks-control@local
+    - steamcmd-hard-boiled-yolks-runtime@local
+    - steamcmd-hard-boiled-yolks-entrypoint@local
+    - proton-ge-hard-boiled-yolks@local
+
+accounts:
+  run-as: 1000
+  groups:
+    - {groupname: container, gid: 1000}
+  users:
+    - {username: container, uid: 1000, gid: 1000, shell: /bin/bash}
+
+paths:
+  - {path: /home/container, type: directory, uid: 1000, gid: 1000, permissions: 0o750}
+  - {path: /home/container/.steam/steam/steamapps/compatdata, type: directory, uid: 1000, gid: 1000, permissions: 0o750}
+  - {path: /tmp, type: directory, permissions: 0o1777}
+
+environment:
+  HOME: /home/container
+  USER: container
+
+entrypoint:
+  command: /usr/bin/entrypoint.sh
+
+archs: [x86_64]

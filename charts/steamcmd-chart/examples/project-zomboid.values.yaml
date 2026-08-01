@@ -1,0 +1,22 @@
+hby:
+  ports:
+    - {name: game, containerPort: 16261, servicePort: 16261, protocol: UDP}
+    - {name: steam, containerPort: 16262, servicePort: 16262, protocol: UDP}
+  container:
+    envFrom:
+      - secretRef: {name: project-zomboid-secrets}
+    env:
+      - {name: SERVER_PORT, value: "16261"}
+      - {name: STEAM_PORT, value: "16262"}
+      - {name: SERVER_NAME, value: Pterodactyl}
+      - {name: ADMIN_USER, value: admin}
+    extraVolumeMounts:
+      - {name: tmp, mountPath: /tmp}
+  extraVolumes:
+    - name: tmp
+      emptyDir: {sizeLimit: 8Gi}
+  persistence:
+    size: 30Gi
+steamcmd:
+  appId: "380870"
+  startup: 'export PATH="./jre64/bin:$PATH"; export LD_LIBRARY_PATH="./linux64:./natives:.:./jre64/lib/amd64:${LD_LIBRARY_PATH}"; JSIG=libjsig.so; LD_PRELOAD="${LD_PRELOAD}:${JSIG}" ./ProjectZomboid64 -port {{SERVER_PORT}} -udpport {{STEAM_PORT}} -cachedir=/home/container/.cache -servername "{{SERVER_NAME}}" -adminusername {{ADMIN_USER}} -adminpassword "{{ADMIN_PASSWORD}}"'

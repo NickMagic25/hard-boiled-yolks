@@ -1,0 +1,52 @@
+hby:
+  ports:
+    - {name: query, containerPort: 15637, servicePort: 15637, protocol: UDP}
+  persistence:
+    size: 40Gi
+  nodeSelector:
+    kubernetes.io/arch: amd64
+  resources:
+    requests: {cpu: "4", memory: 8Gi}
+    limits: {memory: 16Gi}
+
+steamcmd:
+  appId: "2278520"
+  startup: 'mkdir -p ./logs; : > ./logs/enshrouded_server.log; proton run ./enshrouded_server.exe & server_pid=$!; tail -c0 -F ./logs/enshrouded_server.log --pid=$server_pid; wait "$server_pid"'
+  bootstrap:
+    enabled: true
+    # Configuration values and Secrets may change without changing the script.
+    policy: Always
+    env:
+      - {name: SERVER_NAME, value: "My Enshrouded Server"}
+      - {name: QUERY_PORT, value: "15637"}
+      - {name: MAX_PLAYERS, value: "16"}
+    envFrom:
+      - secretRef: {name: enshrouded-secrets}
+    script: |
+      python3 - <<'PY'
+      import json
+      import os
+      from pathlib import Path
+
+      path = Path("enshrouded_server.json")
+      config = json.loads(path.read_text()) if path.exists() else {}
+      config.update({
+          "name": os.environ["SERVER_NAME"],
+          "saveDirectory": "./savegame",
+          "logDirectory": "./logs",
+          "ip": "0.0.0.0",
+          "queryPort": int(os.environ["QUERY_PORT"]),
+          "slotCount": int(os.environ["MAX_PLAYERS"]),
+          "voiceChatMode": config.get("voiceChatMode", "Proximity"),
+          "enableVoiceChat": config.get("enableVoiceChat", False),
+          "enableTextChat": config.get("enableTextChat", False),
+          "gameSettingsPreset": config.get("gameSettingsPreset", "Default"),
+          "userGroups": [
+              {"name": "Admin", "password": os.environ["ADMIN_PASSWORD"], "canKickBan": True, "canAccessInventories": True, "canEditBase": True, "canExtendBase": True, "canEditWorld": True, "reservedSlots": 0},
+              {"name": "Friend", "password": os.environ["FRIEND_PASSWORD"], "canKickBan": False, "canAccessInventories": True, "canEditBase": True, "canExtendBase": True, "canEditWorld": True, "reservedSlots": 1},
+              {"name": "Guest", "password": os.environ["GUEST_PASSWORD"], "canKickBan": False, "canAccessInventories": False, "canEditBase": False, "canExtendBase": False, "canEditWorld": False, "reservedSlots": 3},
+              {"name": "Visitor", "password": os.environ["VISITOR_PASSWORD"], "canKickBan": False, "canAccessInventories": False, "canEditBase": False, "canExtendBase": False, "canEditWorld": False, "reservedSlots": 0},
+          ],
+      })
+      path.write_text(json.dumps(config, indent=2) + "\n")
+      PY

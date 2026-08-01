@@ -1,0 +1,35 @@
+hby:
+  controller:
+    service: {enabled: true, port: 8080}
+  externalSecrets:
+    enabled: true
+    items:
+      - name: modrinth-auth
+        spec:
+          secretStoreRef: {kind: ClusterSecretStore, name: openbao}
+          target: {name: modrinth-auth}
+          data:
+            - secretKey: MODRINTH_TOKEN
+              remoteRef: {key: minecraft, property: token}
+  gatewayRoutes:
+    enabled: true
+    items:
+      - kind: TCPRoute
+        port: 25565
+        parentRefs: [{name: games, sectionName: minecraft}]
+      - kind: HTTPRoute
+        name: minecraft-control
+        port: 8080
+        hostnames: [minecraft-control.example.com]
+        parentRefs: [{name: web, sectionName: https}]
+minecraft:
+  eula: true
+  extraJars:
+    - url: https://repo1.maven.org/example.jar
+      sha512: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      targetPath: libraries/example.jar
+modrinth:
+  projectId: example
+  auth:
+    enabled: true
+    existingSecret: modrinth-auth

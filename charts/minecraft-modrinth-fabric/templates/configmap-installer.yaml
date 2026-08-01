@@ -1,10 +1,10 @@
+{{- $ctx := dict "root" . "hby" .Values.hby -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "minecraft-modrinth-fabric.installerConfigMapName" . }}
+  name: {{ include "hby.fullname" $ctx }}-installer
   labels:
-    {{- include "minecraft-modrinth-fabric.labels" . | nindent 4 }}
+    {{- include "hby.labels" $ctx | nindent 4 }}
 data:
   install-modrinth-pack.sh: |-
 {{ .Files.Get "scripts/install-modrinth-pack.sh" | indent 4 }}
-

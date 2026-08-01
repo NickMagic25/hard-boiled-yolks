@@ -1,0 +1,17 @@
+{{- $ctx := dict "root" . "hby" .Values.hby -}}
+{{ include "hby.serviceAccount" $ctx }}
+---
+{{ include "hby.pvc" $ctx }}
+---
+{{ include "hby.service" $ctx }}
+{{ include "hby.externalSecrets" $ctx }}
+{{ include "hby.gatewayRoutes" $ctx }}
+---
+{{- $_ := set $ctx "containerName" "steamcmd" -}}
+{{- $_ := set $ctx "env" (include "steamcmd.env" .) -}}
+{{- $_ := set $ctx "initContainers" (include "steamcmd.installContainers" .) -}}
+{{- if .Values.steamcmd.bootstrap.enabled }}
+{{- $_ := set $ctx "podAnnotations" (dict "checksum/bootstrap" (include (print $.Template.BasePath "/bootstrap-configmap.yaml") . | sha256sum)) -}}
+{{- $_ := set $ctx "extraVolumes" (include "steamcmd.bootstrapVolume" .) -}}
+{{- end }}
+{{ include "hby.deployment" $ctx }}

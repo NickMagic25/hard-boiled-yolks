@@ -1,0 +1,52 @@
+name: Helm charts
+on:
+  pull_request:
+    paths: ["charts/**", ".github/workflows/charts.yml"]
+  push:
+    branches: [master]
+    paths: ["charts/**", ".github/workflows/charts.yml"]
+
+jobs:
+  lint-and-render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+        with: {version: v4.2.0}
+      - name: Build local dependencies
+        run: |
+          helm dependency build --skip-refresh charts/steamcmd-chart
+          helm dependency build --skip-refresh charts/steamcmd-proton-chart
+          helm dependency build --skip-refresh charts/minecraft-modrinth-fabric
+      - name: Lint application charts
+        run: |
+          for values in charts/steamcmd-chart/examples/*.values.yaml charts/steamcmd-chart/tests/*.values.yaml; do
+            helm lint --strict charts/steamcmd-chart -f "$values"
+          done
+          for values in charts/steamcmd-proton-chart/examples/*.values.yaml; do
+            helm lint --strict charts/steamcmd-proton-chart -f "$values"
+          done
+          helm lint --strict charts/minecraft-modrinth-fabric \
+            -f charts/minecraft-modrinth-fabric/tests/features.values.yaml
+      - name: Render scenarios
+        run: |
+          mkdir -p /tmp/rendered
+          for values in charts/steamcmd-chart/examples/*.values.yaml charts/steamcmd-chart/tests/*.values.yaml; do
+            name=$(basename "$values" .values.yaml)
+            helm template "$name" charts/steamcmd-chart -f "$values" > "/tmp/rendered/$name.yaml"
+          done
+          helm template enshrouded charts/steamcmd-proton-chart \
+            -f charts/steamcmd-proton-chart/examples/enshrouded.values.yaml \
+            > /tmp/rendered/enshrouded.yaml
+          helm template minecraft charts/minecraft-modrinth-fabric \
+            -f charts/minecraft-modrinth-fabric/tests/features.values.yaml \
+            > /tmp/rendered/minecraft.yaml
+          charts/steamcmd-chart/tests/render_test.sh
+          charts/steamcmd-proton-chart/tests/render_test.sh
+          charts/minecraft-modrinth-fabric/tests/render_test.sh
+      - name: Validate Kubernetes schemas
+        run: |
+          for manifest in /tmp/rendered/*.yaml; do
+            docker run --rm -i ghcr.io/yannh/kubeconform:v0.7.0 \
+              -strict -summary -ignore-missing-schemas < "$manifest"
+          done

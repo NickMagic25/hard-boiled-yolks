@@ -1,0 +1,13 @@
+hby:
+  ports:
+    - {name: game, containerPort: 26900, servicePort: 26900, protocol: UDP}
+    - {name: telnet, containerPort: 8081, servicePort: 8081, protocol: TCP}
+  container:
+    env:
+      - {name: SERVER_PORT, value: "26900"}
+      - {name: TELNET_PORT, value: "8081"}
+      - {name: MAX_PLAYERS, value: "8"}
+      - {name: GAME_DIFFICULTY, value: "2"}
+steamcmd:
+  appId: "294420"
+  startup: './7DaysToDieServer.x86_64 -configfile=serverconfig.xml -quit -batchmode -nographics -dedicated -ServerPort={{SERVER_PORT}} -ServerMaxPlayerCount={{MAX_PLAYERS}} -GameDifficulty={{GAME_DIFFICULTY}} -TelnetPort={{TELNET_PORT}}'

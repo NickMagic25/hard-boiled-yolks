@@ -4,6 +4,20 @@ Container image for SteamCMD built with [melange](https://github.com/chainguard-
 
 This image is `x86_64` only.
 
+## Entrypoint modes
+
+The entrypoint accepts `all` (default), `install`, or `run`, also selectable with `HBY_STEAMCMD_MODE`.
+
+- `all` preserves the update-then-run behavior for direct container users.
+- `install` installs an empty data directory and checks for updates when `AUTO_UPDATE=1`, then exits. It writes `.hby_steamcmd_installed` only after SteamCMD succeeds.
+- `run` skips SteamCMD and starts `STARTUP` under `hby-control`.
+
+The Helm charts use separate `install` and `run` containers so failed installs block pod initialization and Steam credentials do not need to reach the game container.
+
+`charts/steamcmd-chart` installs native Linux servers. `charts/steamcmd-proton-chart` forces Windows installation and runs Windows servers with the experimental `steamcmd_proton` image.
+
+`HBY_SERVER_DIR` overrides `/home/container` for tests and specialized deployments.
+
 ## Prerequisites
 
 - [melange](https://github.com/chainguard-dev/melange)

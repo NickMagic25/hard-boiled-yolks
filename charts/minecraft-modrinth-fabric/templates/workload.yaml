@@ -1,0 +1,7 @@
+{{- $ctx := dict "root" . "hby" .Values.hby -}}
+{{- $_ := set $ctx "containerName" "minecraft" -}}
+{{- $_ := set $ctx "env" (include "minecraft.env" .) -}}
+{{- $_ := set $ctx "initContainers" (include "minecraft.installContainer" .) -}}
+{{- $_ := set $ctx "extraVolumes" (include "minecraft.extraVolumes" .) -}}
+{{- $_ := set $ctx "podAnnotations" (dict "checksum/installer" (include (print $.Template.BasePath "/configmap-installer.yaml") . | sha256sum)) -}}
+{{ include "hby.deployment" $ctx }}
