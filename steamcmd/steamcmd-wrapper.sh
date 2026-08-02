@@ -3,16 +3,13 @@
 STEAMCMD_BOOTSTRAP=/usr/lib/games/steam
 STEAMROOT="${HBY_STEAMCMD_HOME:-${HOME:-/home/container}/.steamcmd}"
 
-# SteamCMD updates itself. Seed its bootstrap client into writable storage so
-# both the client and its Steam metadata stay beside the server data.
-if [ ! -x "${STEAMROOT}/steamcmd.sh" ]; then
-  # A previous interrupted bootstrap can leave a partial .steamcmd directory
-  # on the persistent volume. Reset only that incomplete client state before
-  # restoring the image's known-good bootstrap.
-  rm -rf "${STEAMROOT}"
-  mkdir -p "${STEAMROOT}"
-  cp -R "${STEAMCMD_BOOTSTRAP}/." "${STEAMROOT}/"
-fi
+# SteamCMD updates itself. Its client state is disposable, and an executable
+# launcher from an earlier image can still refer to unavailable runtime files.
+# Always restore the image's known-good bootstrap before an install. This only
+# resets .steamcmd; the game server files on the persistent volume are kept.
+rm -rf "${STEAMROOT}"
+mkdir -p "${STEAMROOT}"
+cp -R "${STEAMCMD_BOOTSTRAP}/." "${STEAMROOT}/"
 
 if [ ! -x "${STEAMROOT}/steamcmd.sh" ]; then
   echo "SteamCMD bootstrap is incomplete at ${STEAMROOT}" >&2
