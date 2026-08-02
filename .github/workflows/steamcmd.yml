@@ -13,7 +13,16 @@ jobs:
       - uses: actions/checkout@v4
       - run: steamcmd/tests/entrypoint_test.sh
       - uses: chainguard-dev/actions/setup-melange@main
-      - uses: chainguard-dev/actions/setup-apko@main
+      - name: Set up apko
+        run: |
+          apko_version=1.2.30
+          apko_archive="apko_${apko_version}_linux_amd64.tar.gz"
+          apko_release="https://github.com/chainguard-dev/apko/releases/download/v${apko_version}"
+          curl -fsSLO "${apko_release}/${apko_archive}"
+          curl -fsSLO "${apko_release}/checksums.txt"
+          grep " ${apko_archive}$" checksums.txt | sha256sum --check -
+          sudo tar xzf "${apko_archive}" -C /usr/local/bin
+          apko version
       - name: Build packages and image
         working-directory: steamcmd
         run: |
