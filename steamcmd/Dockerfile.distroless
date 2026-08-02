@@ -1,0 +1,60 @@
+# syntax=docker/dockerfile:1
+
+FROM --platform=linux/amd64 golang:1.24-bookworm AS control-builder
+WORKDIR /src/control
+COPY control/ ./
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags='-s -w' \
+    -o /out/hby-control ./cmd/hby-control
+
+FROM --platform=linux/amd64 debian:13-slim AS steamcmd-runtime
+ARG RCON_VERSION=0.10.3
+RUN dpkg --add-architecture i386 \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+      bash \
+      busybox-static \
+      ca-certificates \
+      coreutils \
+      curl \
+      libc6:i386 \
+      libgcc-s1:i386 \
+      libstdc++6:i386 \
+      zlib1g:i386 \
+    && rm -rf /var/lib/apt/lists/*
+RUN mkdir -p /opt/steamcmd \
+    && curl -fsSL https://media.steampowered.com/installer/steamcmd_linux.tar.gz \
+      | tar -xz -C /opt/steamcmd \
+    && curl -fsSL "https://github.com/gorcon/rcon-cli/releases/download/v${RCON_VERSION}/rcon-${RCON_VERSION}-amd64_linux.tar.gz" \
+      | tar -xz -C /opt \
+    && install -Dm755 "/opt/rcon-${RCON_VERSION}-amd64_linux/rcon" /opt/rcon
+RUN mkdir -p /runtime-root/usr/bin \
+    && install -Dm755 "$(command -v busybox)" /runtime-root/usr/bin/busybox \
+    && ln -s /usr/bin/busybox /runtime-root/usr/bin/sh \
+    && for tool in basename cat chmod cp dirname mkdir mktemp rm sed sha256sum sleep tail touch; do \
+      ln -s /usr/bin/busybox "/runtime-root/usr/bin/${tool}"; \
+    done
+
+FROM gcr.io/distroless/base-debian13:nonroot
+ENV HOME=/home/container \
+    PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+WORKDIR /home/container
+
+# Debian's i386 glibc loader and its dependency tree are copied unchanged so
+# SteamCMD can update and re-exec its 32-bit client.
+COPY --from=steamcmd-runtime /lib/i386-linux-gnu/ /lib/i386-linux-gnu/
+COPY --from=steamcmd-runtime /usr/lib/i386-linux-gnu/ /usr/lib/i386-linux-gnu/
+COPY --from=steamcmd-runtime /lib/ld-linux.so.2 /lib/ld-linux.so.2
+COPY --from=steamcmd-runtime /lib/x86_64-linux-gnu/ /lib/x86_64-linux-gnu/
+COPY --from=steamcmd-runtime /usr/lib/x86_64-linux-gnu/ /usr/lib/x86_64-linux-gnu/
+COPY --from=steamcmd-runtime /etc/ssl/certs/ /etc/ssl/certs/
+COPY --from=steamcmd-runtime /bin/bash /bin/bash
+COPY --from=steamcmd-runtime /usr/bin/curl /usr/bin/curl
+COPY --from=steamcmd-runtime /runtime-root/usr/bin/ /usr/bin/
+COPY --from=steamcmd-runtime /opt/steamcmd/ /usr/lib/games/steam/
+COPY --from=steamcmd-runtime /opt/rcon /usr/bin/rcon
+COPY --from=control-builder /out/hby-control /usr/bin/hby-control
+COPY --chmod=755 steamcmd/entrypoint.sh /usr/bin/entrypoint.sh
+COPY --chmod=755 steamcmd/steamcmd-wrapper.sh /usr/bin/steamcmd
+
+USER 1000:1000
+ENTRYPOINT ["/usr/bin/entrypoint.sh"]
