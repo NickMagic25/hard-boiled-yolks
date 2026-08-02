@@ -55,6 +55,7 @@ COPY --from=steamcmd-runtime /opt/rcon /usr/bin/rcon
 COPY --from=control-builder /out/hby-control /usr/bin/hby-control
 COPY --chmod=755 steamcmd/entrypoint.sh /usr/bin/entrypoint.sh
 COPY --chmod=755 steamcmd/steamcmd-wrapper.sh /usr/bin/steamcmd
+COPY --chmod=755 steamcmd/steamcmd-launcher.sh /usr/bin/steamcmd-launcher
 
 USER 1000:1000
 ENTRYPOINT ["/usr/bin/entrypoint.sh"]
