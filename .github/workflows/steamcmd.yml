@@ -23,3 +23,13 @@ jobs:
           melange build entrypoint/melange.yaml --source-dir . --signing-key melange.rsa --out-dir packages --arch x86_64
           apko build apko.yaml hard-boiled-yolks:steamcmd steamcmd.tar \
             --keyring-append melange.rsa.pub --repository-append ./packages
+      - name: Verify SteamCMD self-update with writable runtime
+        working-directory: steamcmd
+        run: |
+          docker load < steamcmd.tar
+          docker run --rm --user 1000:1000 \
+            --tmpfs /home/container:uid=1000,gid=1000,mode=0750 \
+            --workdir /home/container \
+            --entrypoint /usr/bin/steamcmd \
+            -e HBY_STEAMCMD_HOME=/home/container/.steamcmd \
+            hard-boiled-yolks:steamcmd-amd64 +quit

@@ -9,6 +9,7 @@ mkdir -p "$tmp/server" "$tmp/bin"
 cat > "$tmp/bin/steamcmd" <<'EOF'
 #!/bin/bash
 printf '%q ' "$@" > "$STEAMCMD_LOG"
+printf '%s' "${HBY_STEAMCMD_HOME:-}" > "$HBY_STEAMCMD_HOME_LOG"
 if [[ "${STEAMCMD_FAIL:-0}" == 1 ]]; then exit 42; fi
 EOF
 chmod +x "$tmp/bin/steamcmd"
@@ -24,6 +25,7 @@ common=(
   HBY_STEAMCMD_SKIP_INIT_DELAY=1
   STEAMCMD_BIN="$tmp/bin/steamcmd"
   STEAMCMD_LOG="$tmp/steamcmd.log"
+  HBY_STEAMCMD_HOME_LOG="$tmp/steamcmd-home.log"
   SRCDS_APPID=380870
   PATH="$tmp/bin:$PATH"
 )
@@ -31,6 +33,7 @@ common=(
 env "${common[@]}" AUTO_UPDATE=0 bash "$repo_root/steamcmd/entrypoint.sh" install
 test -f "$tmp/server/.hby_steamcmd_installed"
 grep -q 'app_update 380870' "$tmp/steamcmd.log"
+test "$(cat "$tmp/steamcmd-home.log")" = "$tmp/server/.steamcmd"
 
 printf 'unchanged' > "$tmp/steamcmd.log"
 env "${common[@]}" AUTO_UPDATE=0 bash "$repo_root/steamcmd/entrypoint.sh" install

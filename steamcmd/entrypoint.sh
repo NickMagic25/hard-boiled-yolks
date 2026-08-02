@@ -59,6 +59,11 @@ fi
 # Switch to the container's working directory.
 cd "${SERVER_DIR}" || exit 1
 
+# SteamCMD always updates its own client before handling a game update. The
+# image ships a bootstrap client on its read-only filesystem, so keep its
+# mutable runtime beside the game data instead.
+export HBY_STEAMCMD_HOME="${HBY_STEAMCMD_HOME:-${SERVER_DIR}/.steamcmd}"
+
 # Set default values for steam if not provided
 STEAM_USER=${STEAM_USER:-anonymous}
 if [ "${STEAM_USER}" == "anonymous" ]; then

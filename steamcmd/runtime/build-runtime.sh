@@ -1,6 +1,7 @@
 #!/bin/sh
 
 set -eu
+umask 022
 
 DESTDIR="${1:?destination directory is required}"
 
@@ -82,15 +83,41 @@ chmod 0755 "${DESTDIR}/usr/lib/games/steam/linux32/steamcmd"
 cat > "${DESTDIR}/usr/bin/steamcmd" <<'EOF'
 #!/bin/sh
 
-STEAMROOT=/usr/lib/games/steam
+STEAMCMD_BOOTSTRAP=/usr/lib/games/steam
 PLATFORM=linux32
+STEAMROOT="${HBY_STEAMCMD_HOME:-${HOME:-/home/container}/.steamcmd}"
+
+# Valve's client updates itself on every invocation. Copy the image's
+# bootstrap client to writable storage once, then run that copy so its update
+# can be applied without attempting to modify an image layer.
+if [ ! -x "${STEAMROOT}/${PLATFORM}/steamcmd" ]; then
+  mkdir -p "${STEAMROOT}"
+  cp -R "${STEAMCMD_BOOTSTRAP}/." "${STEAMROOT}/"
+fi
 
 export LD_LIBRARY_PATH="${STEAMROOT}/${PLATFORM}:${LD_LIBRARY_PATH:-}"
 ulimit -n 2048
 
-exec /usr/lib/i386-linux-gnu/ld-linux.so.2 \
+STEAMCMD_STDERR_LOG="${HBY_STEAMCMD_STDERR_LOG:-${PWD}/Steam/logs/stderr.txt}"
+tail_pid=""
+if mkdir -p "$(dirname "${STEAMCMD_STDERR_LOG}")" && : > "${STEAMCMD_STDERR_LOG}"; then
+  tail -n 0 -F "${STEAMCMD_STDERR_LOG}" &
+  tail_pid=$!
+fi
+
+cleanup() {
+  if [ -n "${tail_pid}" ]; then
+    kill "${tail_pid}" 2>/dev/null || true
+    wait "${tail_pid}" 2>/dev/null || true
+  fi
+}
+trap cleanup EXIT HUP INT TERM
+
+/usr/lib/i386-linux-gnu/ld-linux.so.2 \
   --library-path "${STEAMROOT}/${PLATFORM}:/usr/lib/i386-linux-gnu" \
   "${STEAMROOT}/${PLATFORM}/steamcmd" "$@"
+status=$?
+exit "${status}"
 EOF
 chmod 0755 "${DESTDIR}/usr/bin/steamcmd"
 
@@ -104,4 +131,3 @@ fi
 if [ -d "${WORKDIR}/rootfs/usr/lib/i386-linux-gnu" ]; then
   cp -a "${WORKDIR}/rootfs/usr/lib/i386-linux-gnu/." "${DESTDIR}/usr/lib/i386-linux-gnu/"
 fi
-

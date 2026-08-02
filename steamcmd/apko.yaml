@@ -59,6 +59,57 @@ paths:
   - path: /usr/bin/entrypoint.sh
     type: permissions
     permissions: 0o755
+  - path: /usr/bin/steamcmd
+    type: permissions
+    permissions: 0o755
+  - path: /usr/lib/games
+    type: directory
+    permissions: 0o755
+  - path: /usr/lib/games/steam
+    type: directory
+    permissions: 0o755
+  - path: /usr/lib/games/steam/linux32
+    type: directory
+    permissions: 0o755
+  - path: /usr/lib/games/steam/steam.sh
+    type: permissions
+    permissions: 0o755
+  - path: /usr/lib/games/steam/steamcmd.sh
+    type: permissions
+    permissions: 0o755
+  - path: /usr/lib/games/steam/linux32/steamcmd
+    type: permissions
+    permissions: 0o755
+  - path: /usr/lib/games/steam/linux32/libstdc++.so.6
+    type: permissions
+    permissions: 0o644
+  - path: /usr/lib/i386-linux-gnu
+    type: directory
+    permissions: 0o755
+  - path: /usr/lib/i386-linux-gnu/ld-linux.so.2
+    type: permissions
+    permissions: 0o755
+  - path: /usr/lib/i386-linux-gnu/libc.so.6
+    type: permissions
+    permissions: 0o644
+  - path: /usr/lib/i386-linux-gnu/libdl.so.2
+    type: permissions
+    permissions: 0o644
+  - path: /usr/lib/i386-linux-gnu/libgcc_s.so.1
+    type: permissions
+    permissions: 0o644
+  - path: /usr/lib/i386-linux-gnu/libm.so.6
+    type: permissions
+    permissions: 0o644
+  - path: /usr/lib/i386-linux-gnu/libpthread.so.0
+    type: permissions
+    permissions: 0o644
+  - path: /usr/lib/i386-linux-gnu/libstdc++.so.6.0.30
+    type: permissions
+    permissions: 0o644
+  - path: /usr/lib/i386-linux-gnu/libz.so.1.2.13
+    type: permissions
+    permissions: 0o644
 
 entrypoint:
   command: /usr/bin/entrypoint.sh
