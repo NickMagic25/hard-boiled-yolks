@@ -59,6 +59,11 @@ fi
 # Switch to the container's working directory.
 cd "${SERVER_DIR}" || exit 1
 
+# SteamCMD derives its mutable Steam directory from HOME. The image runs as a
+# non-root UID without a passwd-managed home, so keep that data on the
+# server's persistent volume instead of falling back to /Steam.
+export HOME="${HBY_HOME:-${SERVER_DIR}}"
+
 # SteamCMD always updates its own client before handling a game update. The
 # image ships a bootstrap client on its read-only filesystem, so keep its
 # mutable runtime beside the game data instead.

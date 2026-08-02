@@ -31,5 +31,6 @@ jobs:
             --tmpfs /home/container:uid=1000,gid=1000,mode=0750 \
             --workdir /home/container \
             --entrypoint /usr/bin/steamcmd \
+            -e HOME=/home/container \
             -e HBY_STEAMCMD_HOME=/home/container/.steamcmd \
             hard-boiled-yolks:steamcmd-amd64 +quit
