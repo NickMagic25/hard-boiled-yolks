@@ -131,3 +131,11 @@ fi
 if [ -d "${WORKDIR}/rootfs/usr/lib/i386-linux-gnu" ]; then
   cp -a "${WORKDIR}/rootfs/usr/lib/i386-linux-gnu/." "${DESTDIR}/usr/lib/i386-linux-gnu/"
 fi
+
+# SteamCMD self-restarts after it downloads an update. That exec uses the
+# interpreter embedded in the binary (/lib/ld-linux.so.2), so provide the
+# standard loader path in addition to the explicit loader used by our wrapper.
+# Wolfi's /lib is usr-merged with /usr/lib, so this produces /lib/ld-linux.so.2
+# without adding a non-usr-merged package path.
+cp "${DESTDIR}/usr/lib/i386-linux-gnu/ld-linux.so.2" "${DESTDIR}/usr/lib/ld-linux.so.2"
+chmod 0755 "${DESTDIR}/usr/lib/ld-linux.so.2"
