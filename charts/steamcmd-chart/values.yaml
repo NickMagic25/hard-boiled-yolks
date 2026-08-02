@@ -3,13 +3,20 @@ hby:
     repository: hard-boiled-yolks
     tag: steamcmd
     pullPolicy: IfNotPresent
+  ports:
+    - name: game
+      containerPort: 27015
+      servicePort: 27015
+      protocol: UDP
   persistence:
     mountPath: /home/container
     size: 20Gi
 
 steamcmd:
-  appId: ""
-  startup: ""
+  # Safe placeholders keep the chart renderable for packaging validation.
+  # Set both values for the game being deployed.
+  appId: "0"
+  startup: sleep infinity
   autoUpdate: true
   validate: false
   betaId: ""
