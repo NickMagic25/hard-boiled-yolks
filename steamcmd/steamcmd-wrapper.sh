@@ -6,8 +6,17 @@ STEAMROOT="${HBY_STEAMCMD_HOME:-${HOME:-/home/container}/.steamcmd}"
 # SteamCMD updates itself. Seed its bootstrap client into writable storage so
 # both the client and its Steam metadata stay beside the server data.
 if [ ! -x "${STEAMROOT}/steamcmd.sh" ]; then
+  # A previous interrupted bootstrap can leave a partial .steamcmd directory
+  # on the persistent volume. Reset only that incomplete client state before
+  # restoring the image's known-good bootstrap.
+  rm -rf "${STEAMROOT}"
   mkdir -p "${STEAMROOT}"
   cp -R "${STEAMCMD_BOOTSTRAP}/." "${STEAMROOT}/"
+fi
+
+if [ ! -x "${STEAMROOT}/steamcmd.sh" ]; then
+  echo "SteamCMD bootstrap is incomplete at ${STEAMROOT}" >&2
+  exit 1
 fi
 
 export LD_LIBRARY_PATH="${STEAMROOT}/linux32:/usr/lib/i386-linux-gnu:${LD_LIBRARY_PATH:-}"
