@@ -16,6 +16,12 @@ if [ ! -x "${STEAMROOT}/steamcmd.sh" ]; then
   exit 1
 fi
 
+ensure_launcher_executable() {
+  if [ -f "${STEAMROOT}/steamcmd.sh" ] && [ ! -x "${STEAMROOT}/steamcmd.sh" ]; then
+    chmod +x "${STEAMROOT}/steamcmd.sh"
+  fi
+}
+
 export LD_LIBRARY_PATH="${STEAMROOT}/linux32:/usr/lib/i386-linux-gnu:${LD_LIBRARY_PATH:-}"
 ulimit -n 2048
 
@@ -26,7 +32,19 @@ if mkdir -p "$(dirname "${STEAMCMD_STDERR_LOG}")" && : > "${STEAMCMD_STDERR_LOG}
   tail_pid=$!
 fi
 
+(
+  while :; do
+    ensure_launcher_executable
+    sleep 0.01
+  done
+) &
+launcher_guard_pid=$!
+
 cleanup() {
+  if [ -n "${launcher_guard_pid:-}" ]; then
+    kill "${launcher_guard_pid}" 2>/dev/null || true
+    wait "${launcher_guard_pid}" 2>/dev/null || true
+  fi
   if [ -n "${tail_pid}" ]; then
     kill "${tail_pid}" 2>/dev/null || true
     wait "${tail_pid}" 2>/dev/null || true
@@ -34,9 +52,8 @@ cleanup() {
 }
 trap cleanup EXIT HUP INT TERM
 
-# SteamCMD replaces its own launcher while updating, and that replacement can
-# lose its execute bit. The stable launcher sources the mutable script, so its
-# self-restarts always return through the image's Bash entrypoint.
-/usr/bin/steamcmd-launcher "$@"
+# SteamCMD replaces this launcher while updating. The guard above restores its
+# execute bit without changing the script content or its expected install path.
+"${STEAMROOT}/steamcmd.sh" "$@"
 status=$?
 exit "${status}"
