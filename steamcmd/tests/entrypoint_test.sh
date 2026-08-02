@@ -5,6 +5,8 @@ repo_root=$(cd "$(dirname "$0")/../.." && pwd)
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 mkdir -p "$tmp/server" "$tmp/bin"
+mkdir -p "$tmp/server/.steamcmd/linux64"
+: > "$tmp/server/.steamcmd/linux64/steamclient.so"
 
 cat > "$tmp/bin/steamcmd" <<'EOF'
 #!/bin/bash
@@ -60,6 +62,8 @@ env "${common[@]}" CONTROL_LOG="$tmp/control.log" STARTUP='echo {{MESSAGE}}' MES
 grep -q '^run$' "$tmp/control.log"
 grep -q '^--$' "$tmp/control.log"
 grep -q 'echo ${MESSAGE}' "$tmp/control.log"
+test -L "$tmp/server/.steam/sdk64/steamclient.so"
+test "$(readlink "$tmp/server/.steam/sdk64/steamclient.so")" = "$tmp/server/.steamcmd/linux64/steamclient.so"
 
 if env HBY_SERVER_DIR="$tmp/server" HBY_STEAMCMD_SKIP_INIT_DELAY=1 bash "$repo_root/steamcmd/entrypoint.sh" invalid; then
   echo 'invalid mode unexpectedly succeeded' >&2

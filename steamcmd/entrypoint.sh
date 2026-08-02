@@ -69,6 +69,19 @@ export HOME="${HBY_HOME:-${SERVER_DIR}}"
 # mutable runtime beside the game data instead.
 export HBY_STEAMCMD_HOME="${HBY_STEAMCMD_HOME:-${SERVER_DIR}/.steamcmd}"
 
+# Some dedicated servers (including Palworld) load Steam's 64-bit client from
+# the conventional SDK location rather than SteamCMD's mutable client tree.
+# SteamCMD creates the source library while installing the game; expose it at
+# the location expected by those servers without duplicating it on the PVC.
+link_steam_sdk() {
+	local steamclient="${HBY_STEAMCMD_HOME}/linux64/steamclient.so"
+	[ -f "${steamclient}" ] || return 0
+
+	local sdk_dir="${HOME}/.steam/sdk64"
+	mkdir -p "${sdk_dir}"
+	ln -sfn "${steamclient}" "${sdk_dir}/steamclient.so"
+}
+
 # Set default values for steam if not provided
 STEAM_USER=${STEAM_USER:-anonymous}
 if [ "${STEAM_USER}" == "anonymous" ]; then
@@ -114,6 +127,8 @@ fi
 if [ "${MODE}" = "all" ] && { [ -z "${AUTO_UPDATE:-}" ] || [ "${AUTO_UPDATE}" = "1" ]; }; then
 	if [ -n "${SRCDS_APPID:-}" ]; then install_server || exit $?; fi
 fi
+
+link_steam_sdk
 
 # Replace Startup Variables
 MODIFIED_STARTUP=$(echo ${STARTUP} | sed -e 's/{{/${/g' -e 's/}}/}/g')
