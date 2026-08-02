@@ -16,6 +16,11 @@ if [ ! -x "${STEAMROOT}/steamcmd.sh" ]; then
   exit 1
 fi
 
+# SteamCMD's self-updater can replace steamcmd.sh without its executable bit
+# and then request a launcher restart. Start that restart through Bash so the
+# updater can continue even when the newly extracted script is not executable.
+sed -i 's|exec "$0" "$@"|exec /bin/bash "$0" "$@"|' "${STEAMROOT}/steamcmd.sh"
+
 export LD_LIBRARY_PATH="${STEAMROOT}/linux32:/usr/lib/i386-linux-gnu:${LD_LIBRARY_PATH:-}"
 ulimit -n 2048
 
@@ -34,6 +39,6 @@ cleanup() {
 }
 trap cleanup EXIT HUP INT TERM
 
-"${STEAMROOT}/steamcmd.sh" "$@"
+/bin/bash "${STEAMROOT}/steamcmd.sh" "$@"
 status=$?
 exit "${status}"
