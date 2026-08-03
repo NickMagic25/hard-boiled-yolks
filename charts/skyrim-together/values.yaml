@@ -1,0 +1,142 @@
+replicaCount: 1
+
+image:
+  repository: hard-boiled-yolks
+  tag: skyrim-together
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: false
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 1000
+  runAsGroup: 1000
+  runAsNonRoot: true
+  runAsUser: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+skyrim:
+  dataDir: /home/container
+  serverExecutable: /st-server/SkyrimTogetherServer
+  serverArgs: []
+  command: []
+  # Overrides the default hby-control args when set.
+  commandArgs: []
+  port: 10578
+  protocol: UDP
+  extraPorts:
+    - name: control
+      containerPort: 8080
+      protocol: TCP
+  extraEnv:
+    - name: HBY_CONTROL_ADDR
+      value: 0.0.0.0:8080
+    - name: HBY_CONTROL_ROOT
+      value: /home/container
+    - name: HBY_CONTROL_SECURE_COOKIES
+      value: "true"
+    - name: HBY_CONTROL_OIDC_SCOPES
+      value: "openid profile email groups"
+
+service:
+  type: ClusterIP
+  port: 10578
+  # Configure controller authentication before exposing this Service externally.
+  extraPorts:
+    - name: control
+      port: 8080
+      targetPort: control
+      protocol: TCP
+  annotations: {}
+
+persistence:
+  enabled: true
+  existingClaim: ""
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+  annotations: {}
+
+probes:
+  enabled: true
+  port: 8080
+  readiness:
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 12
+  liveness:
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    timeoutSeconds: 3
+    failureThreshold: 6
+
+resources: {}
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+externalSecrets:
+  enabled: false
+  # Every rendered ExternalSecret target Secret is added to the Skyrim Together
+  # container with envFrom, so each Secret key becomes an environment variable.
+  # Optional list form for rendering several ExternalSecret resources.
+  # If items is empty, the metadata/spec object below renders one ExternalSecret.
+  items: []
+  metadata:
+    name: ""
+    namespace: ""
+    annotations: {}
+    labels: {}
+  spec:
+    refreshInterval: 1h
+    secretStoreRef:
+      kind: ClusterSecretStore
+      name: ""
+    target:
+      name: ""
+      creationPolicy: "Owner"
+    data:
+      - secretKey:
+        remoteRef:
+          key: ""
+          property: ""
+
+gatewayIngress:
+  enabled: false
+  data:
+    - kind: ""
+      name: "" # metadata.name in gateway.networking.k8s.io/v1
+      namespace: ""
+      hostname: "" # spec.hostnames[] if kind=HTTPRoute, metadata.annotations.external-dns.alpha.kubernetes.io/hostname if externalDNS=true
+      hostnames: []
+      externalDNS: false
+      port: ""
+      annotations: {}
+      labels: {}
+      spec:
+        parentRefs:
+          - name: ""
+            namespace: ""
+            sectionName: ""
+        rules:
+          - {}

@@ -1,0 +1,23 @@
+image:
+  repository: hard-boiled-yolks
+  tag: skyrim-together
+
+skyrim:
+  extraEnv:
+    - name: HBY_CONTROL_ADDR
+      value: 0.0.0.0:8080
+    - name: HBY_CONTROL_ROOT
+      value: /home/container
+    - name: HBY_CONTROL_SECURE_COOKIES
+      value: "true"
+    - name: HBY_CONTROL_OIDC_SCOPES
+      value: "openid profile email groups"
+
+service:
+  type: ClusterIP
+  port: 10578
+  extraPorts:
+    - name: control
+      port: 8080
+      targetPort: control
+      protocol: TCP
